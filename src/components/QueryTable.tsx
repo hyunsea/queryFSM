@@ -106,7 +106,7 @@ const QueryTable: React.FC<QueryTableProps> = ({ jobs, onRerun, filteredJobs }) 
                     <ProgressBar progress={job.progress} status={job.status} />
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                    {formatDateTimeKST(job.created_at)}
+                    {job.created_at ? formatDateTimeKST(job.created_at) : 'N/A'}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     {job.status === 'error' && (
