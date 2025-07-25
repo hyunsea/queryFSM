@@ -2,12 +2,19 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { Activity, RefreshCw } from 'lucide-react';
 import Sidebar from './components/Sidebar';
 import QueryTable from './components/QueryTable';
+import AutoRefreshToggle from './components/AutoRefreshToggle';
+import ToastContainer from './components/ToastContainer';
 import { mockApi, QueryJob } from './utils/mockApi';
+import { useToast } from './hooks/useToast';
 
+type FilterType = 'all' | 'processing' | 'finished' | 'error';
 function App() {
   const [jobs, setJobs] = useState<QueryJob[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [lastUpdated, setLastUpdated] = useState<Date>(new Date());
+  const [autoRefresh, setAutoRefresh] = useState(false);
+  const [activeFilter, setActiveFilter] = useState<FilterType>('all');
+  const { toasts, showSuccess, showError, removeToast } = useToast();
 
   const fetchJobs = useCallback(async () => {
     try {
@@ -26,11 +33,13 @@ function App() {
     fetchJobs();
   }, [fetchJobs]);
 
-  // Auto-refresh every 10 seconds
+  // Auto-refresh every 60 seconds when enabled
   useEffect(() => {
-    const interval = setInterval(fetchJobs, 10000);
-    return () => clearInterval(interval);
-  }, [fetchJobs]);
+    if (autoRefresh) {
+      const interval = setInterval(fetchJobs, 60000);
+      return () => clearInterval(interval);
+    }
+  }, [fetchJobs, autoRefresh]);
 
   const handleNewQuery = (newJob: QueryJob) => {
     setJobs(prev => [newJob, ...prev]);
@@ -50,9 +59,39 @@ function App() {
     fetchJobs();
   };
 
+  const handleSubmitSuccess = () => {
+    showSuccess('Query submitted successfully.');
+  };
+
+  const handleSubmitError = () => {
+    showError('Failed to submit query. Please check parameters and try again.');
+  };
+
+  const getFilteredJobs = () => {
+    if (activeFilter === 'all') return jobs;
+    return jobs.filter(job => job.status === activeFilter);
+  };
+
+  const getStatusCounts = () => {
+    return {
+      total: jobs.length,
+      processing: jobs.filter(job => job.status === 'processing').length,
+      finished: jobs.filter(job => job.status === 'finished').length,
+      error: jobs.filter(job => job.status === 'error').length
+    };
+  };
+
+  const counts = getStatusCounts();
+  const filteredJobs = getFilteredJobs();
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100">
-      <Sidebar onNewQuery={handleNewQuery} />
+      <Sidebar 
+        onNewQuery={handleNewQuery} 
+        onSubmitSuccess={handleSubmitSuccess}
+        onSubmitError={handleSubmitError}
+      />
+      <ToastContainer toasts={toasts} onRemoveToast={removeToast} />
       
       <div className="pl-0 transition-all duration-300">
         <div className="p-6">
@@ -70,6 +109,10 @@ function App() {
               </div>
               
               <div className="flex items-center gap-4">
+                <AutoRefreshToggle 
+                  isEnabled={autoRefresh} 
+                  onToggle={setAutoRefresh} 
+                />
                 <div className="text-sm text-gray-500">
                   Last updated: {lastUpdated.toLocaleTimeString()}
                 </div>
@@ -87,39 +130,50 @@ function App() {
 
           {/* Stats Cards */}
           <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-            <div className="bg-white rounded-xl p-6 shadow-lg border border-gray-200">
+            <button
+              onClick={() => setActiveFilter('all')}
+              className={`bg-white rounded-xl p-6 shadow-lg border-2 transition-all duration-200 text-left hover:shadow-xl ${
+                activeFilter === 'all' ? 'border-blue-500 bg-blue-50' : 'border-gray-200 hover:border-gray-300'
+              }`}
+            >
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-gray-600">Total Queries</p>
-                  <p className="text-2xl font-bold text-gray-900">{jobs.length}</p>
+                  <p className="text-2xl font-bold text-gray-900">{counts.total}</p>
                 </div>
                 <div className="p-3 bg-blue-100 rounded-lg">
                   <Activity className="w-5 h-5 text-blue-600" />
                 </div>
               </div>
-            </div>
+            </button>
             
-            <div className="bg-white rounded-xl p-6 shadow-lg border border-gray-200">
+            <button
+              onClick={() => setActiveFilter('processing')}
+              className={`bg-white rounded-xl p-6 shadow-lg border-2 transition-all duration-200 text-left hover:shadow-xl ${
+                activeFilter === 'processing' ? 'border-blue-500 bg-blue-50' : 'border-gray-200 hover:border-gray-300'
+              }`}
+            >
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-gray-600">Processing</p>
-                  <p className="text-2xl font-bold text-blue-600">
-                    {jobs.filter(job => job.status === 'processing').length}
-                  </p>
+                  <p className="text-2xl font-bold text-blue-600">{counts.processing}</p>
                 </div>
                 <div className="p-3 bg-blue-100 rounded-lg">
                   <div className="w-5 h-5 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" />
                 </div>
               </div>
-            </div>
+            </button>
             
-            <div className="bg-white rounded-xl p-6 shadow-lg border border-gray-200">
+            <button
+              onClick={() => setActiveFilter('finished')}
+              className={`bg-white rounded-xl p-6 shadow-lg border-2 transition-all duration-200 text-left hover:shadow-xl ${
+                activeFilter === 'finished' ? 'border-green-500 bg-green-50' : 'border-gray-200 hover:border-gray-300'
+              }`}
+            >
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-gray-600">Completed</p>
-                  <p className="text-2xl font-bold text-green-600">
-                    {jobs.filter(job => job.status === 'finished').length}
-                  </p>
+                  <p className="text-2xl font-bold text-green-600">{counts.finished}</p>
                 </div>
                 <div className="p-3 bg-green-100 rounded-lg">
                   <div className="w-5 h-5 bg-green-600 rounded-full flex items-center justify-center">
@@ -127,15 +181,18 @@ function App() {
                   </div>
                 </div>
               </div>
-            </div>
+            </button>
             
-            <div className="bg-white rounded-xl p-6 shadow-lg border border-gray-200">
+            <button
+              onClick={() => setActiveFilter('error')}
+              className={`bg-white rounded-xl p-6 shadow-lg border-2 transition-all duration-200 text-left hover:shadow-xl ${
+                activeFilter === 'error' ? 'border-red-500 bg-red-50' : 'border-gray-200 hover:border-gray-300'
+              }`}
+            >
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-gray-600">Failed</p>
-                  <p className="text-2xl font-bold text-red-600">
-                    {jobs.filter(job => job.status === 'error').length}
-                  </p>
+                  <p className="text-2xl font-bold text-red-600">{counts.error}</p>
                 </div>
                 <div className="p-3 bg-red-100 rounded-lg">
                   <div className="w-5 h-5 bg-red-600 rounded-full flex items-center justify-center">
@@ -143,11 +200,15 @@ function App() {
                   </div>
                 </div>
               </div>
-            </div>
+            </button>
           </div>
 
           {/* Query Table */}
-          <QueryTable jobs={jobs} onRerun={handleRerun} />
+          <QueryTable 
+            jobs={jobs} 
+            onRerun={handleRerun} 
+            filteredJobs={activeFilter !== 'all' ? filteredJobs : undefined}
+          />
         </div>
       </div>
     </div>

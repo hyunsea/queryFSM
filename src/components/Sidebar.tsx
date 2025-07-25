@@ -1,12 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { Menu, X, Calendar, Search, Play, ChevronLeft, ChevronRight } from 'lucide-react';
 import { mockApi, ValidProduct, FilelistResponse, SubmitQueryRequest, QueryJob } from '../utils/mockApi';
+import ProcessIdSelector from './ProcessIdSelector';
 
 interface SidebarProps {
   onNewQuery: (job: QueryJob) => void;
+  onSubmitSuccess: () => void;
+  onSubmitError: () => void;
 }
 
-const Sidebar: React.FC<SidebarProps> = ({ onNewQuery }) => {
+const Sidebar: React.FC<SidebarProps> = ({ onNewQuery, onSubmitSuccess, onSubmitError }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [validProducts, setValidProducts] = useState<ValidProduct[]>([]);
   const [selectedProcessId, setSelectedProcessId] = useState('');
@@ -17,6 +20,7 @@ const Sidebar: React.FC<SidebarProps> = ({ onNewQuery }) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showCalendar, setShowCalendar] = useState(false);
   const [currentMonth, setCurrentMonth] = useState(new Date());
+  const [hoveredDate, setHoveredDate] = useState<string>('');
 
   useEffect(() => {
     const loadValidProducts = async () => {
@@ -47,10 +51,6 @@ const Sidebar: React.FC<SidebarProps> = ({ onNewQuery }) => {
     loadFilelist();
   }, [selectedProcessId]);
 
-  const filteredProducts = validProducts.filter(product =>
-    product.process_id.toLowerCase().includes(searchTerm.toLowerCase())
-  );
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedProcessId || !startDate || !endDate) return;
@@ -64,6 +64,7 @@ const Sidebar: React.FC<SidebarProps> = ({ onNewQuery }) => {
       };
       const newJob = await mockApi.submitQuery(request);
       onNewQuery(newJob);
+      onSubmitSuccess();
       
       // Reset form
       setSelectedProcessId('');
@@ -71,8 +72,10 @@ const Sidebar: React.FC<SidebarProps> = ({ onNewQuery }) => {
       setEndDate('');
       setSearchTerm('');
       setShowCalendar(false);
+      setIsOpen(false);
     } catch (error) {
       console.error('Failed to submit query:', error);
+      onSubmitError();
     } finally {
       setIsSubmitting(false);
     }
@@ -142,6 +145,25 @@ const Sidebar: React.FC<SidebarProps> = ({ onNewQuery }) => {
     });
   };
 
+  const handleDateHover = (dateStr: string) => {
+    if (startDate && !endDate) {
+      setHoveredDate(dateStr);
+    }
+  };
+
+  const isDateInPreviewRange = (dateStr: string) => {
+    if (!startDate || endDate || !hoveredDate) return false;
+    const date = dateStr;
+    const start = startDate;
+    const hovered = hoveredDate;
+    
+    if (hovered >= start) {
+      return date > start && date < hovered;
+    } else {
+      return date > hovered && date < start;
+    }
+  };
+
   const monthNames = [
     'January', 'February', 'March', 'April', 'May', 'June',
     'July', 'August', 'September', 'October', 'November', 'December'
@@ -165,45 +187,16 @@ const Sidebar: React.FC<SidebarProps> = ({ onNewQuery }) => {
           
           <form onSubmit={handleSubmit} className="space-y-6">
             {/* Process ID Selection */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Process ID
-              </label>
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
-                <input
-                  type="text"
-                  placeholder="Search process IDs..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
-                />
-              </div>
-              
-              {searchTerm && (
-                <div className="mt-2 max-h-40 overflow-y-auto bg-white border border-gray-200 rounded-lg shadow-lg">
-                  {filteredProducts.map((product) => (
-                    <button
-                      key={product.process_id}
-                      type="button"
-                      onClick={() => {
-                        setSelectedProcessId(product.process_id);
-                        setSearchTerm(product.process_id);
-                      }}
-                      className="w-full text-left px-4 py-2 hover:bg-blue-50 transition-colors duration-150"
-                    >
-                      {product.process_id}
-                    </button>
-                  ))}
-                </div>
-              )}
-              
-              {selectedProcessId && (
-                <div className="mt-2 px-3 py-2 bg-blue-50 rounded-lg border border-blue-200">
-                  <span className="text-sm text-blue-700">Selected: {selectedProcessId}</span>
-                </div>
-              )}
-            </div>
+            <ProcessIdSelector
+              validProducts={validProducts}
+              selectedProcessId={selectedProcessId}
+              searchTerm={searchTerm}
+              onSearchChange={setSearchTerm}
+              onProcessIdSelect={(processId) => {
+                setSelectedProcessId(processId);
+                setSearchTerm(processId);
+              }}
+            />
 
             {/* Calendar Toggle */}
             {selectedProcessId && (
@@ -257,12 +250,15 @@ const Sidebar: React.FC<SidebarProps> = ({ onNewQuery }) => {
                   {generateCalendarDays().map((day, index) => {
                     const isSelected = day.dateStr === startDate || day.dateStr === endDate;
                     const isInRange = startDate && endDate && day.dateStr > startDate && day.dateStr < endDate;
+                    const isInPreviewRange = isDateInPreviewRange(day.dateStr);
                     
                     return (
                       <button
                         key={index}
                         type="button"
                         onClick={() => handleDateClick(day.dateStr, day.isAvailable)}
+                        onMouseEnter={() => handleDateHover(day.dateStr)}
+                        onMouseLeave={() => setHoveredDate('')}
                         disabled={!day.isAvailable || !day.isCurrentMonth}
                         className={`
                           w-8 h-8 text-xs rounded transition-all duration-150 relative
@@ -280,7 +276,8 @@ const Sidebar: React.FC<SidebarProps> = ({ onNewQuery }) => {
                                 ? 'bg-red-100 text-red-600'
                                 : 'bg-gray-100 text-gray-400'
                           }
-                          ${isInRange && day.isCurrentMonth ? 'bg-blue-100' : ''}
+                          ${(isInRange || isInPreviewRange) && day.isCurrentMonth ? 'bg-blue-200' : ''}
+                          ${isInPreviewRange && day.isCurrentMonth ? 'bg-blue-100 opacity-70' : ''}
                           ${day.isToday ? 'ring-2 ring-blue-300' : ''}
                         `}
                       >

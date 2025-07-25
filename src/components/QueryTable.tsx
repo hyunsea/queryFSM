@@ -3,19 +3,19 @@ import { RotateCcw, Eye } from 'lucide-react';
 import { QueryJob } from '../utils/mockApi';
 import StatusBadge from './StatusBadge';
 import ProgressBar from './ProgressBar';
+import { formatDateTimeKST } from '../utils/dateUtils';
 
 interface QueryTableProps {
   jobs: QueryJob[];
   onRerun: (jobId: number) => void;
+  filteredJobs?: QueryJob[];
 }
 
-const QueryTable: React.FC<QueryTableProps> = ({ jobs, onRerun }) => {
+const QueryTable: React.FC<QueryTableProps> = ({ jobs, onRerun, filteredJobs }) => {
+  const displayJobs = filteredJobs || jobs;
+
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString();
-  };
-
-  const formatDateTime = (dateString: string) => {
-    return new Date(dateString).toLocaleString();
   };
 
   const formatPeriod = (startDate: string, endDate: string) => {
@@ -59,27 +59,32 @@ const QueryTable: React.FC<QueryTableProps> = ({ jobs, onRerun }) => {
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-200">
-            {jobs.length === 0 ? (
+            {displayJobs.length === 0 ? (
               <tr>
                 <td colSpan={7} className="px-6 py-12 text-center text-gray-500">
                   <div className="flex flex-col items-center gap-3">
                     <Eye className="w-8 h-8 text-gray-300" />
-                    <span>No queries found. Submit your first query to get started.</span>
+                    <span>
+                      {jobs.length === 0 
+                        ? "No queries found. Submit your first query to get started."
+                        : "No queries match the current filter."
+                      }
+                    </span>
                   </div>
                 </td>
               </tr>
             ) : (
-              jobs.map((job, index) => (
+              displayJobs.map((job, index) => (
                 <tr 
                   key={job.id} 
                   className={`hover:bg-gray-50/50 transition-colors duration-150 ${
-                    index === 0 ? 'bg-blue-50/30' : ''
+                    index === 0 && !filteredJobs ? 'bg-blue-50/30' : ''
                   }`}
                 >
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="flex items-center gap-2">
                       <span className="text-sm font-medium text-gray-900">#{job.id}</span>
-                      {index === 0 && (
+                      {index === 0 && !filteredJobs && (
                         <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800">
                           Latest
                         </span>
@@ -101,7 +106,7 @@ const QueryTable: React.FC<QueryTableProps> = ({ jobs, onRerun }) => {
                     <ProgressBar progress={job.progress} status={job.status} />
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                    {formatDateTime(job.created_at)}
+                    {formatDateTimeKST(job.created_at)}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     {job.status === 'error' && (
