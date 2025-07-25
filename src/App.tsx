@@ -8,14 +8,12 @@ import { mockApi, QueryJob } from './utils/mockApi';
 import { useToast } from './hooks/useToast';
 
 type FilterType = 'all' | 'processing' | 'finished' | 'error';
-
 function App() {
   const [jobs, setJobs] = useState<QueryJob[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [lastUpdated, setLastUpdated] = useState<Date>(new Date());
   const [autoRefresh, setAutoRefresh] = useState(false);
   const [activeFilter, setActiveFilter] = useState<FilterType>('all');
-  const [selectedProcessId, setSelectedProcessId] = useState<string>('');
   const { toasts, showSuccess, showError, removeToast } = useToast();
 
   const fetchJobs = useCallback(async () => {
@@ -70,51 +68,21 @@ function App() {
   };
 
   const getFilteredJobs = () => {
-    let filtered = jobs;
-    
-    // Filter by status
-    if (activeFilter !== 'all') {
-      filtered = filtered.filter(job => job.status === activeFilter);
-    }
-    
-    // Filter by process ID
-    if (selectedProcessId) {
-      filtered = filtered.filter(job => job.process_id === selectedProcessId);
-    }
-    
-    return filtered;
+    if (activeFilter === 'all') return jobs;
+    return jobs.filter(job => job.status === activeFilter);
   };
 
   const getStatusCounts = () => {
-    // Apply process ID filter to counts if selected
-    const baseJobs = selectedProcessId 
-      ? jobs.filter(job => job.process_id === selectedProcessId)
-      : jobs;
-      
     return {
-      total: baseJobs.length,
-      processing: baseJobs.filter(job => job.status === 'processing').length,
-      finished: baseJobs.filter(job => job.status === 'finished').length,
-      error: baseJobs.filter(job => job.status === 'error').length
+      total: jobs.length,
+      processing: jobs.filter(job => job.status === 'processing').length,
+      finished: jobs.filter(job => job.status === 'finished').length,
+      error: jobs.filter(job => job.status === 'error').length
     };
-  };
-
-  const getUniqueProcessIds = () => {
-    const processIds = [...new Set(jobs.map(job => job.process_id))];
-    return processIds.sort();
-  };
-
-  const handleProcessIdFilter = (processId: string) => {
-    setSelectedProcessId(processId === selectedProcessId ? '' : processId);
-    // Reset status filter when changing process ID filter
-    if (processId !== selectedProcessId) {
-      setActiveFilter('all');
-    }
   };
 
   const counts = getStatusCounts();
   const filteredJobs = getFilteredJobs();
-  const uniqueProcessIds = getUniqueProcessIds();
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100">
@@ -240,9 +208,6 @@ function App() {
             jobs={jobs} 
             onRerun={handleRerun} 
             filteredJobs={activeFilter !== 'all' ? filteredJobs : undefined}
-            uniqueProcessIds={uniqueProcessIds}
-            selectedProcessId={selectedProcessId}
-            onProcessIdFilter={handleProcessIdFilter}
           />
         </div>
       </div>
