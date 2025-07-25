@@ -1,0 +1,47 @@
+[
+  { 
+    "id": 1, 
+    "process_id": "process_A_01", 
+    "start_date": "2025-01-15", 
+    "end_date": "2025-01-16", 
+    "status": "finished",
+    "progress": 100,
+    "created_at": "2025-01-20T10:30:00Z"
+  },
+  { 
+    "id": 2, 
+    "process_id": "process_B_02", 
+    "start_date": "2025-01-01", 
+    "end_date": "2025-01-10", 
+    "status": "processing",
+    "progress": 65,
+    "created_at": "2025-01-20T11:15:00Z"
+  },
+  { 
+    "id": 3, 
+    "process_id": "process_C_03", 
+    "start_date": "2025-01-20", 
+    "end_date": "2025-01-25", 
+    "status": "error",
+    "progress": 0,
+    "created_at": "2025-01-20T12:00:00Z"
+  },
+  { 
+    "id": 4, 
+    "process_id": "process_A_01", 
+    "start_date": "2025-01-20", 
+    "end_date": "2025-01-20", 
+    "status": "queued",
+    "progress": 0,
+    "created_at": "2025-01-20T12:45:00Z"
+  },
+  { 
+    "id": 5, 
+    "process_id": "process_D_04", 
+    "start_date": "2025-01-12", 
+    "end_date": "2025-01-14", 
+    "status": "processing",
+    "progress": 30,
+    "created_at": "2025-01-20T13:20:00Z"
+  }
+]
