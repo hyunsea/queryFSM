@@ -9,9 +9,19 @@ interface QueryTableProps {
   jobs: QueryJob[];
   onRerun: (jobId: number) => void;
   filteredJobs?: QueryJob[];
+  uniqueProcessIds: string[];
+  selectedProcessId: string;
+  onProcessIdFilter: (processId: string) => void;
 }
 
-const QueryTable: React.FC<QueryTableProps> = ({ jobs, onRerun, filteredJobs }) => {
+const QueryTable: React.FC<QueryTableProps> = ({ 
+  jobs, 
+  onRerun, 
+  filteredJobs, 
+  uniqueProcessIds, 
+  selectedProcessId, 
+  onProcessIdFilter 
+}) => {
   const displayJobs = filteredJobs || jobs;
 
   const formatDate = (dateString: string) => {
@@ -27,8 +37,42 @@ const QueryTable: React.FC<QueryTableProps> = ({ jobs, onRerun, filteredJobs }) 
   return (
     <div className="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden">
       <div className="px-6 py-4 bg-gradient-to-r from-gray-50 to-gray-100 border-b border-gray-200">
-        <h2 className="text-lg font-semibold text-gray-800">Query Status Tracking</h2>
-        <p className="text-sm text-gray-600 mt-1">Monitor and manage your data queries</p>
+        <div className="flex items-center justify-between">
+          <div>
+            <h2 className="text-lg font-semibold text-gray-800">Query Status Tracking</h2>
+            <p className="text-sm text-gray-600 mt-1">Monitor and manage your data queries</p>
+          </div>
+          
+          {/* Process ID Filter */}
+          <div className="flex items-center gap-2">
+            <span className="text-sm font-medium text-gray-700">Filter by Process ID:</span>
+            <div className="flex flex-wrap gap-2">
+              <button
+                onClick={() => onProcessIdFilter('')}
+                className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-all duration-200 ${
+                  !selectedProcessId
+                    ? 'bg-blue-100 text-blue-800 border-2 border-blue-300'
+                    : 'bg-gray-100 text-gray-700 border-2 border-transparent hover:bg-gray-200'
+                }`}
+              >
+                All
+              </button>
+              {uniqueProcessIds.map((processId) => (
+                <button
+                  key={processId}
+                  onClick={() => onProcessIdFilter(processId)}
+                  className={`px-3 py-1.5 text-xs font-medium font-mono rounded-lg transition-all duration-200 ${
+                    selectedProcessId === processId
+                      ? 'bg-blue-100 text-blue-800 border-2 border-blue-300'
+                      : 'bg-gray-100 text-gray-700 border-2 border-transparent hover:bg-gray-200'
+                  }`}
+                >
+                  {processId}
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
       </div>
       
       <div className="overflow-x-auto">
@@ -67,7 +111,9 @@ const QueryTable: React.FC<QueryTableProps> = ({ jobs, onRerun, filteredJobs }) 
                     <span>
                       {jobs.length === 0 
                         ? "No queries found. Submit your first query to get started."
-                        : "No queries match the current filter."
+                        : selectedProcessId
+                          ? `No queries found for process ID: ${selectedProcessId}`
+                          : "No queries match the current filter."
                       }
                     </span>
                   </div>
