@@ -1,18 +1,35 @@
 import React from 'react';
-import { RotateCcw, Eye } from 'lucide-react';
+import { RotateCcw, Eye, ExternalLink } from 'lucide-react';
 import { QueryJob } from '../utils/mockApi';
 import StatusBadge from './StatusBadge';
 import ProgressBar from './ProgressBar';
+import ProcessIdFilter from './ProcessIdFilter';
 import { formatDateTimeKST } from '../utils/dateUtils';
 
 interface QueryTableProps {
   jobs: QueryJob[];
   onRerun: (jobId: number) => void;
   filteredJobs?: QueryJob[];
+  processIdFilter: string[];
+  onProcessIdFilterChange: (selected: string[]) => void;
 }
 
-const QueryTable: React.FC<QueryTableProps> = ({ jobs, onRerun, filteredJobs }) => {
-  const displayJobs = filteredJobs || jobs;
+const QueryTable: React.FC<QueryTableProps> = ({ 
+  jobs, 
+  onRerun, 
+  filteredJobs, 
+  processIdFilter, 
+  onProcessIdFilterChange 
+}) => {
+  // Apply both status filter (filteredJobs) and process ID filter
+  let displayJobs = filteredJobs || jobs;
+  
+  if (processIdFilter.length > 0) {
+    displayJobs = displayJobs.filter(job => processIdFilter.includes(job.process_id));
+  }
+
+  // Get unique process IDs for the filter
+  const availableProcessIds = Array.from(new Set(jobs.map(job => job.process_id))).sort();
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString();
@@ -24,6 +41,10 @@ const QueryTable: React.FC<QueryTableProps> = ({ jobs, onRerun, filteredJobs }) 
     return start === end ? start : `${start} - ${end}`;
   };
 
+  const handleAirflowLinkClick = (job: QueryJob) => {
+    const airflowUrl = `https://test.com/${job.dag_id}/dag_run_id=${job.id}`;
+    window.open(airflowUrl, '_blank');
+  };
   return (
     <div className="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden">
       <div className="px-6 py-4 bg-gradient-to-r from-gray-50 to-gray-100 border-b border-gray-200">
@@ -39,7 +60,14 @@ const QueryTable: React.FC<QueryTableProps> = ({ jobs, onRerun, filteredJobs }) 
                 Query ID
               </th>
               <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Process ID
+                <div className="flex items-center gap-2">
+                  Process ID
+                  <ProcessIdFilter
+                    availableProcessIds={availableProcessIds}
+                    selectedProcessIds={processIdFilter}
+                    onSelectionChange={onProcessIdFilterChange}
+                  />
+                </div>
               </th>
               <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                 Period
@@ -67,7 +95,7 @@ const QueryTable: React.FC<QueryTableProps> = ({ jobs, onRerun, filteredJobs }) 
                     <span>
                       {jobs.length === 0 
                         ? "No queries found. Submit your first query to get started."
-                        : "No queries match the current filter."
+                        : "No queries match the current filters."
                       }
                     </span>
                   </div>
@@ -109,15 +137,27 @@ const QueryTable: React.FC<QueryTableProps> = ({ jobs, onRerun, filteredJobs }) 
                     {formatDateTimeKST(job.created_at)}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    {job.status === 'error' && (
+                    <div className="flex items-center gap-2">
+                      {/* Airflow Link - Available for all jobs */}
                       <button
-                        onClick={() => onRerun(job.id)}
-                        className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-red-700 bg-red-100 rounded-lg hover:bg-red-200 transition-colors duration-200"
+                        onClick={() => handleAirflowLinkClick(job)}
+                        className="p-1.5 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded transition-colors duration-200"
+                        title={`View in Airflow: ${job.dag_id}`}
                       >
-                        <RotateCcw className="w-3.5 h-3.5" />
-                        Rerun
+                        <ExternalLink className="w-4 h-4" />
                       </button>
-                    )}
+                      
+                      {/* Rerun Button - Only for error status */}
+                      {job.status === 'error' && (
+                        <button
+                          onClick={() => onRerun(job.id)}
+                          className="p-1.5 text-red-600 hover:text-red-700 hover:bg-red-50 rounded transition-colors duration-200"
+                          title="Rerun failed query"
+                        >
+                          <RotateCcw className="w-4 h-4" />
+                        </button>
+                      )}
+                    </div>
                   </td>
                 </tr>
               ))

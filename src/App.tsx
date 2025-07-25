@@ -14,6 +14,7 @@ function App() {
   const [lastUpdated, setLastUpdated] = useState<Date>(new Date());
   const [autoRefresh, setAutoRefresh] = useState(false);
   const [activeFilter, setActiveFilter] = useState<FilterType>('all');
+  const [processIdFilter, setProcessIdFilter] = useState<string[]>([]);
   const { toasts, showSuccess, showError, removeToast } = useToast();
 
   const fetchJobs = useCallback(async () => {
@@ -65,6 +66,10 @@ function App() {
 
   const handleSubmitError = () => {
     showError('Failed to submit query. Please check parameters and try again.');
+  };
+
+  const handleProcessIdFilterChange = (selected: string[]) => {
+    setProcessIdFilter(selected);
   };
 
   const getFilteredJobs = () => {
@@ -208,6 +213,8 @@ function App() {
             jobs={jobs} 
             onRerun={handleRerun} 
             filteredJobs={activeFilter !== 'all' ? filteredJobs : undefined}
+            processIdFilter={processIdFilter}
+            onProcessIdFilterChange={handleProcessIdFilterChange}
           />
         </div>
       </div>

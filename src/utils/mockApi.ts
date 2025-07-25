@@ -14,6 +14,7 @@ export interface FilelistResponse {
 export interface QueryJob {
   id: number;
   process_id: string;
+  dag_id: string;
   start_date: string;
   end_date: string;
   status: 'queued' | 'processing' | 'error' | 'finished';
