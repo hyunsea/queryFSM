@@ -6,10 +6,6 @@ export const convertToKST = (utcTimestamp: string): string => {
 };
 
 export const formatDateTimeKST = (utcTimestamp: string): string => {
-  if (!utcTimestamp) {
-    return 'N/A';
-  }
-  
   const kstTimestamp = convertToKST(utcTimestamp);
   return new Date(kstTimestamp).toLocaleString('en-US', {
     timeZone: 'Asia/Seoul',
