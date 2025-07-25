@@ -71,7 +71,6 @@ const Sidebar: React.FC<SidebarProps> = ({ onNewQuery, onSubmitSuccess, onSubmit
       setStartDate('');
       setEndDate('');
       setSearchTerm('');
-      setShowCalendar(false);
       setIsOpen(false);
     } catch (error) {
       console.error('Failed to submit query:', error);
@@ -198,22 +197,18 @@ const Sidebar: React.FC<SidebarProps> = ({ onNewQuery, onSubmitSuccess, onSubmit
               }}
             />
 
-            {/* Calendar Toggle */}
+            {/* Calendar Section - Auto-expands when Process ID is selected */}
             {selectedProcessId && (
               <div>
-                <button
-                  type="button"
-                  onClick={() => setShowCalendar(!showCalendar)}
-                  className="flex items-center gap-2 w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-lg hover:bg-gray-100 transition-colors duration-200"
-                >
-                  <Calendar className="w-4 h-4" />
-                  Select Query Period
-                </button>
+                <div className="flex items-center gap-2 mb-3 px-4 py-3 bg-blue-50 border border-blue-200 rounded-lg">
+                  <Calendar className="w-4 h-4 text-blue-600" />
+                  <span className="text-sm font-medium text-blue-800">Select Query Period</span>
+                </div>
               </div>
             )}
 
-            {/* Calendar */}
-            {showCalendar && availableDates.length > 0 && (
+            {/* Calendar - Auto-shows when Process ID is selected */}
+            {selectedProcessId && availableDates.length > 0 && (
               <div className="bg-white border border-gray-200 rounded-lg p-4 shadow-inner">
                 {/* Month Navigation */}
                 <div className="flex items-center justify-between mb-4">
@@ -249,7 +244,7 @@ const Sidebar: React.FC<SidebarProps> = ({ onNewQuery, onSubmitSuccess, onSubmit
                 <div className="grid grid-cols-7 gap-1">
                   {generateCalendarDays().map((day, index) => {
                     const isSelected = day.dateStr === startDate || day.dateStr === endDate;
-                    const isInRange = startDate && endDate && day.dateStr > startDate && day.dateStr < endDate;
+                    const isInRange = startDate && endDate && day.dateStr >= startDate && day.dateStr <= endDate;
                     const isInPreviewRange = isDateInPreviewRange(day.dateStr);
                     
                     return (
@@ -269,15 +264,15 @@ const Sidebar: React.FC<SidebarProps> = ({ onNewQuery, onSubmitSuccess, onSubmit
                               : 'cursor-not-allowed opacity-50'
                           }
                           ${isSelected 
-                            ? 'bg-blue-500 text-white hover:bg-blue-600' 
+                            ? 'bg-blue-600 text-white hover:bg-blue-700' 
                             : day.isAvailable && day.isCurrentMonth
                               ? 'bg-blue-100 text-blue-800' 
                               : availableDates.includes(day.dateStr) && day.isCurrentMonth
                                 ? 'bg-red-100 text-red-600'
                                 : 'bg-gray-100 text-gray-400'
                           }
-                          ${(isInRange || isInPreviewRange) && day.isCurrentMonth ? 'bg-blue-200' : ''}
-                          ${isInPreviewRange && day.isCurrentMonth ? 'bg-blue-100 opacity-70' : ''}
+                          ${isInRange && day.isCurrentMonth && !isSelected ? 'bg-blue-600 text-white' : ''}
+                          ${isInPreviewRange && day.isCurrentMonth && !isSelected ? 'bg-blue-600 text-white opacity-70' : ''}
                           ${day.isToday ? 'ring-2 ring-blue-300' : ''}
                         `}
                       >

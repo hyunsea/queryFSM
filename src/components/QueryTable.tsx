@@ -141,7 +141,7 @@ const QueryTable: React.FC<QueryTableProps> = ({
                       {/* Airflow Link - Available for all jobs */}
                       <button
                         onClick={() => handleAirflowLinkClick(job)}
-                        className="p-1.5 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded transition-colors duration-200"
+                        className="p-1.5 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded transition-colors duration-200 cursor-pointer"
                         title={`View in Airflow: ${job.dag_id}`}
                       >
                         <ExternalLink className="w-4 h-4" />
@@ -151,7 +151,7 @@ const QueryTable: React.FC<QueryTableProps> = ({
                       {job.status === 'error' && (
                         <button
                           onClick={() => onRerun(job.id)}
-                          className="p-1.5 text-red-600 hover:text-red-700 hover:bg-red-50 rounded transition-colors duration-200"
+                          className="p-1.5 text-red-600 hover:text-red-700 hover:bg-red-50 rounded transition-colors duration-200 cursor-pointer"
                           title="Rerun failed query"
                         >
                           <RotateCcw className="w-4 h-4" />
