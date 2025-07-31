@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { Menu, X, Calendar, Search, Play, ChevronLeft, ChevronRight } from 'lucide-react';
 import { mockApi, ValidProduct, FilelistResponse, SubmitQueryRequest, QueryJob } from '../utils/mockApi';
 import PartIdSelector from './ProcessIdSelector';
-import AddPartIdModal from './AddPartIdModal';
 
 interface SidebarProps {
   onNewQuery: (job: QueryJob) => void;
@@ -22,7 +21,6 @@ const Sidebar: React.FC<SidebarProps> = ({ onNewQuery, onSubmitSuccess, onSubmit
   const [showCalendar, setShowCalendar] = useState(false);
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [hoveredDate, setHoveredDate] = useState<string>('');
-  const [showAddPartIdModal, setShowAddPartIdModal] = useState(false);
 
   useEffect(() => {
     const loadValidProducts = async () => {
@@ -175,21 +173,6 @@ const Sidebar: React.FC<SidebarProps> = ({ onNewQuery, onSubmitSuccess, onSubmit
     'July', 'August', 'September', 'October', 'November', 'December'
   ];
   return (
-  const handleAddPartIdSuccess = async () => {
-    onSubmitSuccess();
-    // Refresh the valid products list
-    try {
-      const products = await mockApi.getValidProducts();
-      setValidProducts(products);
-    } catch (error) {
-      console.error('Failed to refresh valid products:', error);
-    }
-  };
-
-  const handleAddPartIdError = (message: string) => {
-    onSubmitError();
-  };
-
     <>
       {/* Toggle Button */}
       <button
@@ -219,18 +202,6 @@ const Sidebar: React.FC<SidebarProps> = ({ onNewQuery, onSubmitSuccess, onSubmit
               }}
               onPartIdClear={handleClearSelection}
             />
-
-            {/* Add New Part ID Button */}
-            <div className="border-t border-gray-200 pt-4">
-              <button
-                type="button"
-                onClick={() => setShowAddPartIdModal(true)}
-                className="w-full flex items-center justify-center gap-2 px-4 py-3 border-2 border-dashed border-gray-300 rounded-lg text-gray-600 hover:border-blue-400 hover:text-blue-600 hover:bg-blue-50 transition-all duration-200"
-              >
-                <span className="text-lg">+</span>
-                Add New Part ID
-              </button>
-            </div>
 
             {/* Calendar Section - Auto-expands when Part ID is selected */}
             {selectedPartId && (
@@ -361,14 +332,6 @@ const Sidebar: React.FC<SidebarProps> = ({ onNewQuery, onSubmitSuccess, onSubmit
           </form>
         </div>
       </div>
-
-      {/* Add Part ID Modal */}
-      <AddPartIdModal
-        isOpen={showAddPartIdModal}
-        onClose={() => setShowAddPartIdModal(false)}
-        onSuccess={handleAddPartIdSuccess}
-        onError={handleAddPartIdError}
-      />
     </>
   );
 };
