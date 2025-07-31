@@ -1,5 +1,5 @@
 import React from 'react';
-import { Search } from 'lucide-react';
+import { Search, X } from 'lucide-react';
 import { ValidProduct } from '../utils/mockApi';
 
 interface PartIdSelectorProps {
@@ -8,6 +8,7 @@ interface PartIdSelectorProps {
   searchTerm: string;
   onSearchChange: (term: string) => void;
   onPartIdSelect: (partId: string) => void;
+  onPartIdClear: () => void;
 }
 
 const PartIdSelector: React.FC<PartIdSelectorProps> = ({
@@ -15,7 +16,8 @@ const PartIdSelector: React.FC<PartIdSelectorProps> = ({
   selectedPartId,
   searchTerm,
   onSearchChange,
-  onPartIdSelect
+  onPartIdSelect,
+  onPartIdClear
 }) => {
   const filteredProducts = validProducts.filter(product =>
     product.part_id.toLowerCase().includes(searchTerm.toLowerCase())
@@ -68,8 +70,16 @@ const PartIdSelector: React.FC<PartIdSelectorProps> = ({
       </div>
       
       {selectedPartId && (
-        <div className="mt-3 px-3 py-2 bg-blue-50 rounded-lg border border-blue-200">
+        <div className="mt-3 px-3 py-2 bg-blue-50 rounded-lg border border-blue-200 flex items-center justify-between">
           <span className="text-sm text-blue-700">Selected: {selectedPartId}</span>
+          <button
+            type="button"
+            onClick={onPartIdClear}
+            className="ml-2 p-1 text-blue-600 hover:text-blue-800 hover:bg-blue-100 rounded-full transition-colors duration-200"
+            title="Clear selection"
+          >
+            <X className="w-4 h-4" />
+          </button>
         </div>
       )}
     </div>
