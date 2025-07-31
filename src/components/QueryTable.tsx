@@ -3,33 +3,33 @@ import { RotateCcw, Eye, ExternalLink } from 'lucide-react';
 import { QueryJob } from '../utils/mockApi';
 import StatusBadge from './StatusBadge';
 import ProgressBar from './ProgressBar';
-import ProcessIdFilter from './ProcessIdFilter';
+import PartIdFilter from './PartIdFilter';
 import { formatDateTimeKST } from '../utils/dateUtils';
 
 interface QueryTableProps {
   jobs: QueryJob[];
   onRerun: (jobId: number) => void;
   filteredJobs?: QueryJob[];
-  processIdFilter: string[];
-  onProcessIdFilterChange: (selected: string[]) => void;
+  partIdFilter: string[];
+  onPartIdFilterChange: (selected: string[]) => void;
 }
 
 const QueryTable: React.FC<QueryTableProps> = ({ 
   jobs, 
   onRerun, 
   filteredJobs, 
-  processIdFilter, 
-  onProcessIdFilterChange 
+  partIdFilter, 
+  onPartIdFilterChange 
 }) => {
-  // Apply both status filter (filteredJobs) and process ID filter
+  // Apply both status filter (filteredJobs) and part ID filter
   let displayJobs = filteredJobs || jobs;
   
-  if (processIdFilter.length > 0) {
-    displayJobs = displayJobs.filter(job => processIdFilter.includes(job.process_id));
+  if (partIdFilter.length > 0) {
+    displayJobs = displayJobs.filter(job => partIdFilter.includes(job.part_id));
   }
 
-  // Get unique process IDs for the filter
-  const availableProcessIds = Array.from(new Set(jobs.map(job => job.process_id))).sort();
+  // Get unique part IDs for the filter
+  const availablePartIds = Array.from(new Set(jobs.map(job => job.part_id))).sort();
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString();
@@ -61,11 +61,11 @@ const QueryTable: React.FC<QueryTableProps> = ({
               </th>
               <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                 <div className="flex items-center gap-2">
-                  Process ID
-                  <ProcessIdFilter
-                    availableProcessIds={availableProcessIds}
-                    selectedProcessIds={processIdFilter}
-                    onSelectionChange={onProcessIdFilterChange}
+                  Part ID
+                  <PartIdFilter
+                    availablePartIds={availablePartIds}
+                    selectedPartIds={partIdFilter}
+                    onSelectionChange={onPartIdFilterChange}
                   />
                 </div>
               </th>
@@ -121,7 +121,7 @@ const QueryTable: React.FC<QueryTableProps> = ({
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <span className="text-sm text-gray-900 font-mono bg-gray-100 px-2 py-1 rounded">
-                      {job.process_id}
+                      {job.part_id}
                     </span>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">

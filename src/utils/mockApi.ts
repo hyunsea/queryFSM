@@ -3,17 +3,17 @@ import filelistData from '../mocks/filelist.json';
 import queryJobsData from '../mocks/queryJobs.json';
 
 export interface ValidProduct {
-  process_id: string;
+  part_id: string;
 }
 
 export interface FilelistResponse {
-  process_id: string;
+  part_id: string;
   filelist: string[];
 }
 
 export interface QueryJob {
   id: number;
-  process_id: string;
+  part_id: string;
   dag_id: string;
   start_date: string;
   end_date: string;
@@ -23,7 +23,7 @@ export interface QueryJob {
 }
 
 export interface SubmitQueryRequest {
-  process_id: string;
+  part_id: string;
   start_date: string;
   end_date: string;
 }
@@ -46,7 +46,7 @@ export const mockApi = {
     const data = filelistData as Record<string, FilelistResponse>;
     const result = data[processId];
     if (!result) {
-      throw new Error(`No filelist found for process_id: ${processId}`);
+      throw new Error(`No filelist found for part_id: ${processId}`);
     }
     return result;
   },
@@ -72,7 +72,7 @@ export const mockApi = {
     await mockDelay();
     const newJob: QueryJob = {
       id: nextJobId++,
-      process_id: request.process_id,
+      part_id: request.part_id,
       start_date: request.start_date,
       end_date: request.end_date,
       status: 'queued',
@@ -102,7 +102,7 @@ export const mockApi = {
 
     const newJob: QueryJob = {
       id: nextJobId++,
-      process_id: existingJob.process_id,
+      part_id: existingJob.part_id,
       start_date: existingJob.start_date,
       end_date: existingJob.end_date,
       status: 'queued',
