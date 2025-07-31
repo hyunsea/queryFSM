@@ -10,13 +10,13 @@ interface PartIdSelectorProps {
   onPartIdSelect: (partId: string) => void;
 }
 
-export default function PartIdSelector({
+const PartIdSelector: React.FC<PartIdSelectorProps> = ({
   validProducts,
   selectedPartId,
   searchTerm,
   onSearchChange,
   onPartIdSelect
-}: PartIdSelectorProps) {
+}) => {
   const filteredProducts = validProducts.filter(product =>
     product.part_id.toLowerCase().includes(searchTerm.toLowerCase())
   );
@@ -74,4 +74,4 @@ export default function PartIdSelector({
       )}
     </div>
   );
-}
+};
