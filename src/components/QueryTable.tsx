@@ -3,7 +3,7 @@ import { RotateCcw, Eye, ExternalLink } from 'lucide-react';
 import { QueryJob } from '../utils/mockApi';
 import StatusBadge from './StatusBadge';
 import ProgressBar from './ProgressBar';
-import PartIdFilter from './PartIdFilter';
+import PartIdFilter from './ProcessIdFilter';
 import { formatDateTimeKST } from '../utils/dateUtils';
 
 interface QueryTableProps {
