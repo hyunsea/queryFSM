@@ -121,3 +121,5 @@ const PartIdFilter: React.FC<PartIdFilterProps> = ({
     </div>
   );
 };
+
+export default PartIdFilter;
