@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Menu, X, Calendar, Search, Play, ChevronLeft, ChevronRight } from 'lucide-react';
 import { mockApi, ValidProduct, FilelistResponse, SubmitQueryRequest, QueryJob } from '../utils/mockApi';
-import PartIdSelector from './PartIdSelector';
+import PartIdSelector from './ProcessIdSelector';
 
 interface SidebarProps {
   onNewQuery: (job: QueryJob) => void;
