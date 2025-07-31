@@ -1,15 +1,15 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { ChevronDown, Filter, X } from 'lucide-react';
 
-interface PartIdFilterProps {
-  availablePartIds: string[];
-  selectedPartIds: string[];
+interface ProcessIdFilterProps {
+  availableProcessIds: string[];
+  selectedProcessIds: string[];
   onSelectionChange: (selected: string[]) => void;
 }
 
-const PartIdFilter: React.FC<PartIdFilterProps> = ({
-  availablePartIds,
-  selectedPartIds,
+const ProcessIdFilter: React.FC<ProcessIdFilterProps> = ({
+  availableProcessIds,
+  selectedProcessIds,
   onSelectionChange
 }) => {
   const [isOpen, setIsOpen] = useState(false);
@@ -26,20 +26,20 @@ const PartIdFilter: React.FC<PartIdFilterProps> = ({
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  const handlePartIdToggle = (partId: string) => {
-    const isSelected = selectedPartIds.includes(partId);
+  const handleProcessIdToggle = (processId: string) => {
+    const isSelected = selectedProcessIds.includes(processId);
     if (isSelected) {
-      onSelectionChange(selectedPartIds.filter(id => id !== partId));
+      onSelectionChange(selectedProcessIds.filter(id => id !== processId));
     } else {
-      onSelectionChange([...selectedPartIds, partId]);
+      onSelectionChange([...selectedProcessIds, processId]);
     }
   };
 
   const handleSelectAll = () => {
-    if (selectedPartIds.length === availablePartIds.length) {
+    if (selectedProcessIds.length === availableProcessIds.length) {
       onSelectionChange([]);
     } else {
-      onSelectionChange([...availablePartIds]);
+      onSelectionChange([...availableProcessIds]);
     }
   };
 
@@ -47,8 +47,8 @@ const PartIdFilter: React.FC<PartIdFilterProps> = ({
     onSelectionChange([]);
   };
 
-  const isAllSelected = selectedPartIds.length === availablePartIds.length;
-  const hasActiveFilter = selectedPartIds.length > 0 && selectedPartIds.length < availablePartIds.length;
+  const isAllSelected = selectedProcessIds.length === availableProcessIds.length;
+  const hasActiveFilter = selectedProcessIds.length > 0 && selectedProcessIds.length < availableProcessIds.length;
 
   return (
     <div className="relative" ref={dropdownRef}>
@@ -64,7 +64,7 @@ const PartIdFilter: React.FC<PartIdFilterProps> = ({
         <ChevronDown className={`w-3 h-3 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} />
         {hasActiveFilter && (
           <span className="ml-1 px-1.5 py-0.5 bg-blue-200 text-blue-800 text-xs rounded-full font-medium">
-            {selectedPartIds.length}
+            {selectedProcessIds.length}
           </span>
         )}
       </button>
@@ -73,7 +73,7 @@ const PartIdFilter: React.FC<PartIdFilterProps> = ({
         <div className="absolute top-full left-0 mt-1 w-64 bg-white border border-gray-200 rounded-lg shadow-lg z-50 max-h-80 overflow-hidden">
           <div className="p-3 border-b border-gray-100">
             <div className="flex items-center justify-between mb-2">
-              <span className="text-sm font-medium text-gray-700">Filter by Part ID</span>
+              <span className="text-sm font-medium text-gray-700">Filter by Process ID</span>
               {hasActiveFilter && (
                 <button
                   onClick={clearFilters}
@@ -101,18 +101,18 @@ const PartIdFilter: React.FC<PartIdFilterProps> = ({
           </div>
           
           <div className="max-h-48 overflow-y-auto">
-            {availablePartIds.map((partId) => (
+            {availableProcessIds.map((processId) => (
               <label
-                key={partId}
+                key={processId}
                 className="flex items-center gap-2 px-3 py-2 hover:bg-gray-50 cursor-pointer transition-colors duration-150"
               >
                 <input
                   type="checkbox"
-                  checked={selectedPartIds.includes(partId)}
-                  onChange={() => handlePartIdToggle(partId)}
+                  checked={selectedProcessIds.includes(processId)}
+                  onChange={() => handleProcessIdToggle(processId)}
                   className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
                 />
-                <span className="text-sm font-mono text-gray-700">{partId}</span>
+                <span className="text-sm font-mono text-gray-700">{processId}</span>
               </label>
             ))}
           </div>
@@ -121,3 +121,5 @@ const PartIdFilter: React.FC<PartIdFilterProps> = ({
     </div>
   );
 };
+
+export default ProcessIdFilter;

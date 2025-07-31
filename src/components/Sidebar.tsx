@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Menu, X, Calendar, Search, Play, ChevronLeft, ChevronRight } from 'lucide-react';
 import { mockApi, ValidProduct, FilelistResponse, SubmitQueryRequest, QueryJob } from '../utils/mockApi';
-import PartIdSelector from './PartIdSelector';
+import ProcessIdSelector from './ProcessIdSelector';
 
 interface SidebarProps {
   onNewQuery: (job: QueryJob) => void;
@@ -12,7 +12,7 @@ interface SidebarProps {
 const Sidebar: React.FC<SidebarProps> = ({ onNewQuery, onSubmitSuccess, onSubmitError }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [validProducts, setValidProducts] = useState<ValidProduct[]>([]);
-  const [selectedPartId, setSelectedPartId] = useState('');
+  const [selectedProcessId, setSelectedProcessId] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
   const [availableDates, setAvailableDates] = useState<string[]>([]);
   const [startDate, setStartDate] = useState('');
@@ -36,9 +36,9 @@ const Sidebar: React.FC<SidebarProps> = ({ onNewQuery, onSubmitSuccess, onSubmit
 
   useEffect(() => {
     const loadFilelist = async () => {
-      if (selectedPartId) {
+      if (selectedProcessId) {
         try {
-          const filelist = await mockApi.getFilelist(selectedPartId);
+          const filelist = await mockApi.getFilelist(selectedProcessId);
           setAvailableDates(filelist.filelist);
         } catch (error) {
           console.error('Failed to load filelist:', error);
@@ -49,16 +49,16 @@ const Sidebar: React.FC<SidebarProps> = ({ onNewQuery, onSubmitSuccess, onSubmit
       }
     };
     loadFilelist();
-  }, [selectedPartId]);
+  }, [selectedProcessId]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!selectedPartId || !startDate || !endDate) return;
+    if (!selectedProcessId || !startDate || !endDate) return;
 
     setIsSubmitting(true);
     try {
       const request: SubmitQueryRequest = {
-        part_id: selectedPartId,
+        process_id: selectedProcessId,
         start_date: startDate,
         end_date: endDate
       };
@@ -67,7 +67,7 @@ const Sidebar: React.FC<SidebarProps> = ({ onNewQuery, onSubmitSuccess, onSubmit
       onSubmitSuccess();
       
       // Reset form
-      setSelectedPartId('');
+      setSelectedProcessId('');
       setStartDate('');
       setEndDate('');
       setSearchTerm('');
@@ -185,20 +185,20 @@ const Sidebar: React.FC<SidebarProps> = ({ onNewQuery, onSubmitSuccess, onSubmit
           <h2 className="text-xl font-semibold text-gray-800 mb-6">New Query Submission</h2>
           
           <form onSubmit={handleSubmit} className="space-y-6">
-            {/* Part ID Selection */}
-            <PartIdSelector
+            {/* Process ID Selection */}
+            <ProcessIdSelector
               validProducts={validProducts}
-              selectedPartId={selectedPartId}
+              selectedProcessId={selectedProcessId}
               searchTerm={searchTerm}
               onSearchChange={setSearchTerm}
-              onPartIdSelect={(partId) => {
-                setSelectedPartId(partId);
-                setSearchTerm(partId);
+              onProcessIdSelect={(processId) => {
+                setSelectedProcessId(processId);
+                setSearchTerm(processId);
               }}
             />
 
-            {/* Calendar Section - Auto-expands when Part ID is selected */}
-            {selectedPartId && (
+            {/* Calendar Section - Auto-expands when Process ID is selected */}
+            {selectedProcessId && (
               <div>
                 <div className="flex items-center gap-2 mb-3 px-4 py-3 bg-blue-50 border border-blue-200 rounded-lg">
                   <Calendar className="w-4 h-4 text-blue-600" />
@@ -207,8 +207,8 @@ const Sidebar: React.FC<SidebarProps> = ({ onNewQuery, onSubmitSuccess, onSubmit
               </div>
             )}
 
-            {/* Calendar - Auto-shows when Part ID is selected */}
-            {selectedPartId && availableDates.length > 0 && (
+            {/* Calendar - Auto-shows when Process ID is selected */}
+            {selectedProcessId && availableDates.length > 0 && (
               <div className="bg-white border border-gray-200 rounded-lg p-4 shadow-inner">
                 {/* Month Navigation */}
                 <div className="flex items-center justify-between mb-4">
@@ -313,7 +313,7 @@ const Sidebar: React.FC<SidebarProps> = ({ onNewQuery, onSubmitSuccess, onSubmit
             {/* Submit Button */}
             <button
               type="submit"
-              disabled={!selectedPartId || !startDate || !endDate || isSubmitting}
+              disabled={!selectedProcessId || !startDate || !endDate || isSubmitting}
               className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
             >
               {isSubmitting ? (

@@ -1,7 +1,7 @@
 [
   { 
     "id": 1, 
-    "part_id": "part_A_01", 
+    "process_id": "process_A_01", 
     "dag_id": "data_processing_dag_A",
     "start_date": "2025-01-15", 
     "end_date": "2025-01-16", 
@@ -11,7 +11,7 @@
   },
   { 
     "id": 2, 
-    "part_id": "part_B_02", 
+    "process_id": "process_B_02", 
     "dag_id": "data_processing_dag_B",
     "start_date": "2025-01-01", 
     "end_date": "2025-01-10", 
@@ -21,7 +21,7 @@
   },
   { 
     "id": 3, 
-    "part_id": "part_C_03", 
+    "process_id": "process_C_03", 
     "dag_id": "data_processing_dag_C",
     "start_date": "2025-01-20", 
     "end_date": "2025-01-25", 
@@ -31,7 +31,7 @@
   },
   { 
     "id": 4, 
-    "part_id": "part_A_01", 
+    "process_id": "process_A_01", 
     "dag_id": "data_processing_dag_A",
     "start_date": "2025-01-20", 
     "end_date": "2025-01-20", 
@@ -41,7 +41,7 @@
   },
   { 
     "id": 5, 
-    "part_id": "part_D_04", 
+    "process_id": "process_D_04", 
     "dag_id": "data_processing_dag_D",
     "start_date": "2025-01-12", 
     "end_date": "2025-01-14", 
