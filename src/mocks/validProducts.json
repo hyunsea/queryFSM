@@ -1,7 +1,7 @@
 [
-  {"process_id": "process_A_01"},
-  {"process_id": "process_B_02"},
-  {"process_id": "process_C_03"},
-  {"process_id": "process_D_04"},
-  {"process_id": "process_E_05"}
+  {"part_id": "part_A_01"},
+  {"part_id": "part_B_02"},
+  {"part_id": "part_C_03"},
+  {"part_id": "part_D_04"},
+  {"part_id": "part_E_05"}
 ]
