@@ -67,10 +67,7 @@ const Sidebar: React.FC<SidebarProps> = ({ onNewQuery, onSubmitSuccess, onSubmit
       onSubmitSuccess();
       
       // Reset form
-      setSelectedPartId('');
-      setStartDate('');
-      setEndDate('');
-      setSearchTerm('');
+      handleClearSelection();
       setIsOpen(false);
     } catch (error) {
       console.error('Failed to submit query:', error);
@@ -78,6 +75,14 @@ const Sidebar: React.FC<SidebarProps> = ({ onNewQuery, onSubmitSuccess, onSubmit
     } finally {
       setIsSubmitting(false);
     }
+  };
+
+  const handleClearSelection = () => {
+    setSelectedPartId('');
+    setStartDate('');
+    setEndDate('');
+    setSearchTerm('');
+    setAvailableDates([]);
   };
 
   const generateCalendarDays = () => {
@@ -195,6 +200,7 @@ const Sidebar: React.FC<SidebarProps> = ({ onNewQuery, onSubmitSuccess, onSubmit
                 setSelectedPartId(partId);
                 setSearchTerm(partId);
               }}
+              onPartIdClear={handleClearSelection}
             />
 
             {/* Calendar Section - Auto-expands when Part ID is selected */}

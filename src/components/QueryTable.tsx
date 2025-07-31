@@ -4,6 +4,8 @@ import { QueryJob } from '../utils/mockApi';
 import StatusBadge from './StatusBadge';
 import ProgressBar from './ProgressBar';
 import PartIdFilter from './ProcessIdFilter';
+import Pagination from './Pagination';
+import { usePagination } from '../hooks/usePagination';
 import { formatDateTimeKST } from '../utils/dateUtils';
 
 interface QueryTableProps {
@@ -27,6 +29,16 @@ const QueryTable: React.FC<QueryTableProps> = ({
   if (partIdFilter.length > 0) {
     displayJobs = displayJobs.filter(job => partIdFilter.includes(job.part_id));
   }
+
+  // Pagination
+  const {
+    currentPage,
+    pageSize,
+    totalPages,
+    paginatedData,
+    setCurrentPage,
+    setPageSize
+  } = usePagination({ data: displayJobs, initialPageSize: 10 });
 
   // Get unique part IDs for the filter
   const availablePartIds = Array.from(new Set(jobs.map(job => job.part_id))).sort();
@@ -87,7 +99,7 @@ const QueryTable: React.FC<QueryTableProps> = ({
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-200">
-            {displayJobs.length === 0 ? (
+            {paginatedData.length === 0 ? (
               <tr>
                 <td colSpan={7} className="px-6 py-12 text-center text-gray-500">
                   <div className="flex flex-col items-center gap-3">
@@ -102,17 +114,20 @@ const QueryTable: React.FC<QueryTableProps> = ({
                 </td>
               </tr>
             ) : (
-              displayJobs.map((job, index) => (
+              paginatedData.map((job, index) => {
+                // Calculate the actual index in the full dataset for highlighting
+                const actualIndex = displayJobs.findIndex(j => j.id === job.id);
+                return (
                 <tr 
                   key={job.id} 
                   className={`hover:bg-gray-50/50 transition-colors duration-150 ${
-                    index === 0 && !filteredJobs ? 'bg-blue-50/30' : ''
+                    actualIndex === 0 && !filteredJobs ? 'bg-blue-50/30' : ''
                   }`}
                 >
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="flex items-center gap-2">
                       <span className="text-sm font-medium text-gray-900">#{job.id}</span>
-                      {index === 0 && !filteredJobs && (
+                      {actualIndex === 0 && !filteredJobs && (
                         <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800">
                           Latest
                         </span>
@@ -160,11 +175,24 @@ const QueryTable: React.FC<QueryTableProps> = ({
                     </div>
                   </td>
                 </tr>
-              ))
+                );
+              })
             )}
           </tbody>
         </table>
       </div>
+      
+      {/* Pagination */}
+      {displayJobs.length > 0 && (
+        <Pagination
+          currentPage={currentPage}
+          totalPages={totalPages}
+          pageSize={pageSize}
+          totalItems={displayJobs.length}
+          onPageChange={setCurrentPage}
+          onPageSizeChange={setPageSize}
+        />
+      )}
     </div>
   );
 };
