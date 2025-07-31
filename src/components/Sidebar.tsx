@@ -174,7 +174,7 @@ const Sidebar: React.FC<SidebarProps> = ({ onNewQuery, onSubmitSuccess, onSubmit
     'January', 'February', 'March', 'April', 'May', 'June',
     'July', 'August', 'September', 'October', 'November', 'December'
   ];
-
+  return (
   const handleAddPartIdSuccess = async () => {
     onSubmitSuccess();
     // Refresh the valid products list
@@ -190,7 +190,6 @@ const Sidebar: React.FC<SidebarProps> = ({ onNewQuery, onSubmitSuccess, onSubmit
     onSubmitError();
   };
 
-  return (
     <>
       {/* Toggle Button */}
       <button
