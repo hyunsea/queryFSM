@@ -204,8 +204,8 @@ const Sidebar: React.FC<SidebarProps> = ({ onNewQuery, onSubmitSuccess, onSubmit
       {/* Sidebar */}
       <div className={`fixed top-0 left-0 h-full bg-white/95 backdrop-blur-lg border-r border-gray-200 shadow-xl transition-all duration-300 z-40 ${
         isOpen ? 'w-96' : 'w-0'
-      } overflow-hidden`}>
-        <div className="p-6 pt-20">
+      } overflow-hidden flex flex-col`}>
+        <div className="p-6 pt-20 flex-1 overflow-y-auto">
           <h2 className="text-xl font-semibold text-gray-800 mb-6">New Query Submission</h2>
           
           <form onSubmit={handleSubmit} className="space-y-6">
@@ -223,16 +223,18 @@ const Sidebar: React.FC<SidebarProps> = ({ onNewQuery, onSubmitSuccess, onSubmit
             />
 
             {/* Add New Part ID Button */}
-            <div className="mt-4 pt-4 border-t border-gray-200">
-              <button
-                type="button"
-                onClick={() => setIsAddPartIdModalOpen(true)}
-                className="w-full flex items-center justify-center gap-2 px-4 py-3 border-2 border-dashed border-gray-300 rounded-lg text-gray-600 hover:border-blue-400 hover:text-blue-600 hover:bg-blue-50 transition-all duration-200"
-              >
-                <span className="text-lg">+</span>
-                Add New Part ID
-              </button>
-            </div>
+            {!selectedPartId && (
+              <div className="mt-4 pt-4 border-t border-gray-200">
+                <button
+                  type="button"
+                  onClick={() => setIsAddPartIdModalOpen(true)}
+                  className="w-full flex items-center justify-center gap-2 px-4 py-3 border-2 border-dashed border-gray-300 rounded-lg text-gray-600 hover:border-blue-400 hover:text-blue-600 hover:bg-blue-50 transition-all duration-200"
+                >
+                  <span className="text-lg">+</span>
+                  Add New Part ID
+                </button>
+              </div>
+            )}
 
             {/* Calendar Section - Auto-expands when Part ID is selected */}
             {selectedPartId && (
