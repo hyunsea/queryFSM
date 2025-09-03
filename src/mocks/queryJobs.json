@@ -1,52 +1,149 @@
 [
-  { 
-    "id": 1, 
-    "part_id": "part_A_01", 
-    "dag_id": "data_processing_dag_A",
-    "start_date": "2025-01-15", 
-    "end_date": "2025-01-16", 
-    "status": "finished",
-    "progress": 100,
-    "created_at": "2025-01-20T10:30:00Z"
+  {
+    "group_id": 1,
+    "part_id": "part_A_01",
+    "startdate": "2025-01-15",
+    "enddate": "2025-01-16",
+    "getdata_item": [
+      {
+        "id": 1,
+        "status": "finished",
+        "created_at": "2025-01-20T10:30:00Z",
+        "updated_at": "2025-01-20T10:45:00Z",
+        "firstdate": "2025-01-15",
+        "progress": 100
+      }
+    ],
+    "processing_item": [
+      {
+        "id": 1,
+        "status": "finished",
+        "created_at": "2025-01-20T10:45:00Z",
+        "updated_at": "2025-01-20T11:00:00Z",
+        "progress": 100
+      }
+    ]
   },
-  { 
-    "id": 2, 
-    "part_id": "part_B_02", 
-    "dag_id": "data_processing_dag_B",
-    "start_date": "2025-01-01", 
-    "end_date": "2025-01-10", 
-    "status": "processing",
-    "progress": 65,
-    "created_at": "2025-01-20T11:15:00Z"
+  {
+    "group_id": 2,
+    "part_id": "part_B_02",
+    "startdate": "2025-01-01",
+    "enddate": "2025-01-10",
+    "getdata_item": [
+      {
+        "id": 1,
+        "status": "processing",
+        "created_at": "2025-01-20T11:15:00Z",
+        "updated_at": "2025-01-20T11:30:00Z",
+        "firstdate": "2025-01-01",
+        "progress": 65
+      }
+    ],
+    "processing_item": [
+      {
+        "id": 1,
+        "status": "queued",
+        "created_at": "2025-01-20T11:15:00Z",
+        "updated_at": "2025-01-20T11:15:00Z",
+        "progress": 0
+      }
+    ]
   },
-  { 
-    "id": 3, 
-    "part_id": "part_C_03", 
-    "dag_id": "data_processing_dag_C",
-    "start_date": "2025-01-20", 
-    "end_date": "2025-01-25", 
-    "status": "error",
-    "progress": 0,
-    "created_at": "2025-01-20T12:00:00Z"
+  {
+    "group_id": 3,
+    "part_id": "part_C_03",
+    "startdate": "2025-01-20",
+    "enddate": "2025-01-25",
+    "getdata_item": [
+      {
+        "id": 1,
+        "status": "error",
+        "created_at": "2025-01-20T12:00:00Z",
+        "updated_at": "2025-01-20T12:15:00Z",
+        "firstdate": "2025-01-20",
+        "progress": 0
+      },
+      {
+        "id": 2,
+        "status": "processing",
+        "created_at": "2025-01-20T13:00:00Z",
+        "updated_at": "2025-01-20T13:15:00Z",
+        "firstdate": "2025-01-20",
+        "progress": 25
+      }
+    ],
+    "processing_item": [
+      {
+        "id": 1,
+        "status": "error",
+        "created_at": "2025-01-20T12:15:00Z",
+        "updated_at": "2025-01-20T12:30:00Z",
+        "progress": 0
+      },
+      {
+        "id": 2,
+        "status": "queued",
+        "created_at": "2025-01-20T13:15:00Z",
+        "updated_at": "2025-01-20T13:15:00Z",
+        "progress": 0
+      }
+    ]
   },
-  { 
-    "id": 4, 
-    "part_id": "part_A_01", 
-    "dag_id": "data_processing_dag_A",
-    "start_date": "2025-01-20", 
-    "end_date": "2025-01-20", 
-    "status": "queued",
-    "progress": 0,
-    "created_at": "2025-01-20T12:45:00Z"
+  {
+    "group_id": 4,
+    "part_id": "part_A_01",
+    "startdate": "2025-01-20",
+    "enddate": "2025-01-20",
+    "getdata_item": [
+      {
+        "id": 1,
+        "status": "queued",
+        "created_at": "2025-01-20T12:45:00Z",
+        "updated_at": "2025-01-20T12:45:00Z",
+        "progress": 0
+      }
+    ],
+    "processing_item": [
+      {
+        "id": 1,
+        "status": "queued",
+        "created_at": "2025-01-20T12:45:00Z",
+        "updated_at": "2025-01-20T12:45:00Z",
+        "progress": 0
+      }
+    ]
   },
-  { 
-    "id": 5, 
-    "part_id": "part_D_04", 
-    "dag_id": "data_processing_dag_D",
-    "start_date": "2025-01-12", 
-    "end_date": "2025-01-14", 
-    "status": "processing",
-    "progress": 30,
-    "created_at": "2025-01-20T13:20:00Z"
+  {
+    "group_id": 5,
+    "part_id": "part_D_04",
+    "startdate": "2025-01-12",
+    "enddate": "2025-01-14",
+    "getdata_item": [
+      {
+        "id": 1,
+        "status": "finished",
+        "created_at": "2025-01-20T13:20:00Z",
+        "updated_at": "2025-01-20T14:00:00Z",
+        "firstdate": "2025-01-12",
+        "progress": 100
+      },
+      {
+        "id": 2,
+        "status": "finished",
+        "created_at": "2025-01-20T14:00:00Z",
+        "updated_at": "2025-01-20T14:30:00Z",
+        "firstdate": "2025-01-12",
+        "progress": 100
+      }
+    ],
+    "processing_item": [
+      {
+        "id": 1,
+        "status": "processing",
+        "created_at": "2025-01-20T14:30:00Z",
+        "updated_at": "2025-01-20T14:45:00Z",
+        "progress": 75
+      }
+    ]
   }
 ]

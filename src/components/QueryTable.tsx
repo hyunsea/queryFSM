@@ -1,6 +1,6 @@
-import React from 'react';
-import { RotateCcw, Eye, ExternalLink } from 'lucide-react';
-import { QueryJob } from '../utils/mockApi';
+import React, { useState } from 'react';
+import { RotateCcw, ChevronRight, ChevronDown, Database, Cpu } from 'lucide-react';
+import { QueryJob, GetDataItem, ProcessingItem } from '../utils/mockApi';
 import StatusBadge from './StatusBadge';
 import ProgressBar from './ProgressBar';
 import PartIdFilter from './ProcessIdFilter';
@@ -10,7 +10,7 @@ import { formatDateTimeKST } from '../utils/dateUtils';
 
 interface QueryTableProps {
   jobs: QueryJob[];
-  onRerun: (jobId: number) => void;
+  onRerun: (groupId: number) => void;
   filteredJobs?: QueryJob[];
   partIdFilter: string[];
   onPartIdFilterChange: (selected: string[]) => void;
@@ -23,6 +23,8 @@ const QueryTable: React.FC<QueryTableProps> = ({
   partIdFilter, 
   onPartIdFilterChange 
 }) => {
+  const [expandedGroups, setExpandedGroups] = useState<Set<number>>(new Set());
+
   // Apply both status filter (filteredJobs) and part ID filter
   let displayJobs = filteredJobs || jobs;
   
@@ -43,6 +45,37 @@ const QueryTable: React.FC<QueryTableProps> = ({
   // Get unique part IDs for the filter
   const availablePartIds = Array.from(new Set(jobs.map(job => job.part_id))).sort();
 
+  const toggleGroupExpansion = (groupId: number) => {
+    setExpandedGroups(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(groupId)) {
+        newSet.delete(groupId);
+      } else {
+        newSet.add(groupId);
+      }
+      return newSet;
+    });
+  };
+
+  const getOverallStatus = (job: QueryJob): string => {
+    const allItems = [...job.getdata_item, ...job.processing_item];
+    
+    if (allItems.some(item => item.status === 'error')) return 'error';
+    if (allItems.some(item => item.status === 'processing')) return 'processing';
+    if (allItems.every(item => item.status === 'finished')) return 'finished';
+    return 'queued';
+  };
+
+  const getOverallProgress = (job: QueryJob): number => {
+    const allItems = [...job.getdata_item, ...job.processing_item];
+    const itemsWithProgress = allItems.filter(item => item.progress !== undefined);
+    
+    if (itemsWithProgress.length === 0) return 0;
+    
+    const totalProgress = itemsWithProgress.reduce((sum, item) => sum + (item.progress || 0), 0);
+    return Math.round(totalProgress / itemsWithProgress.length);
+  };
+
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString();
   };
@@ -53,10 +86,98 @@ const QueryTable: React.FC<QueryTableProps> = ({
     return start === end ? start : `${start} - ${end}`;
   };
 
-  const handleAirflowLinkClick = (job: QueryJob) => {
-    const airflowUrl = `https://test.com/${job.dag_id}/dag_run_id=${job.id}`;
-    window.open(airflowUrl, '_blank');
+  const getLatestCreatedAt = (job: QueryJob): string => {
+    const allItems = [...job.getdata_item, ...job.processing_item];
+    const latestItem = allItems.reduce((latest, item) => 
+      new Date(item.created_at) > new Date(latest.created_at) ? item : latest
+    );
+    return latestItem.created_at;
   };
+
+  const renderSubItems = (job: QueryJob) => {
+    if (!expandedGroups.has(job.group_id)) return null;
+
+    return (
+      <>
+        {/* GetData Items */}
+        {job.getdata_item.map((item, index) => (
+          <tr key={`getdata-${item.id}`} className="bg-blue-50/30">
+            <td className="px-6 py-3 pl-12">
+              <div className="flex items-center gap-2">
+                <Database className="w-4 h-4 text-blue-600" />
+                <span className="text-sm text-gray-700">GetData #{item.id}</span>
+              </div>
+            </td>
+            <td className="px-6 py-3 text-sm text-gray-500">-</td>
+            <td className="px-6 py-3 text-sm text-gray-600">
+              {item.firstdate ? formatDate(item.firstdate) : '-'}
+            </td>
+            <td className="px-6 py-3">
+              <StatusBadge status={item.status as any} />
+            </td>
+            <td className="px-6 py-3">
+              <ProgressBar 
+                progress={item.progress || 0} 
+                status={item.status as any} 
+              />
+            </td>
+            <td className="px-6 py-3 text-sm text-gray-600">
+              {formatDateTimeKST(item.created_at)}
+            </td>
+            <td className="px-6 py-3">
+              {item.status === 'error' && (
+                <button
+                  onClick={() => onRerun(job.group_id)}
+                  className="p-1.5 text-red-600 hover:text-red-700 hover:bg-red-50 rounded transition-colors duration-200"
+                  title="Rerun failed item"
+                >
+                  <RotateCcw className="w-4 h-4" />
+                </button>
+              )}
+            </td>
+          </tr>
+        ))}
+
+        {/* Processing Items */}
+        {job.processing_item.map((item, index) => (
+          <tr key={`processing-${item.id}`} className="bg-green-50/30">
+            <td className="px-6 py-3 pl-12">
+              <div className="flex items-center gap-2">
+                <Cpu className="w-4 h-4 text-green-600" />
+                <span className="text-sm text-gray-700">Processing #{item.id}</span>
+              </div>
+            </td>
+            <td className="px-6 py-3 text-sm text-gray-500">-</td>
+            <td className="px-6 py-3 text-sm text-gray-500">-</td>
+            <td className="px-6 py-3">
+              <StatusBadge status={item.status as any} />
+            </td>
+            <td className="px-6 py-3">
+              <ProgressBar 
+                progress={item.progress || 0} 
+                status={item.status as any} 
+              />
+            </td>
+            <td className="px-6 py-3 text-sm text-gray-600">
+              {formatDateTimeKST(item.created_at)}
+            </td>
+            <td className="px-6 py-3">
+              {item.status === 'error' && (
+                <button
+                  onClick={() => onRerun(job.group_id)}
+                  className="p-1.5 text-red-600 hover:text-red-700 hover:bg-red-50 rounded transition-colors duration-200"
+                  title="Rerun failed item"
+                >
+                  <RotateCcw className="w-4 h-4" />
+                </button>
+              )}
+            </td>
+          </tr>
+        ))}
+      </>
+    );
+  };
+
   return (
     <div className="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden">
       <div className="px-6 py-4 bg-gradient-to-r from-gray-50 to-gray-100 border-b border-gray-200">
@@ -69,7 +190,7 @@ const QueryTable: React.FC<QueryTableProps> = ({
           <thead className="bg-gray-50/80">
             <tr>
               <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Query ID
+                Group ID
               </th>
               <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                 <div className="flex items-center gap-2">
@@ -103,7 +224,7 @@ const QueryTable: React.FC<QueryTableProps> = ({
               <tr>
                 <td colSpan={7} className="px-6 py-12 text-center text-gray-500">
                   <div className="flex flex-col items-center gap-3">
-                    <Eye className="w-8 h-8 text-gray-300" />
+                    <Database className="w-8 h-8 text-gray-300" />
                     <span>
                       {jobs.length === 0 
                         ? "No queries found. Submit your first query to get started."
@@ -115,66 +236,79 @@ const QueryTable: React.FC<QueryTableProps> = ({
               </tr>
             ) : (
               paginatedData.map((job, index) => {
-                // Calculate the actual index in the full dataset for highlighting
-                const actualIndex = displayJobs.findIndex(j => j.id === job.id);
+                const isExpanded = expandedGroups.has(job.group_id);
+                const overallStatus = getOverallStatus(job);
+                const overallProgress = getOverallProgress(job);
+                const totalItems = job.getdata_item.length + job.processing_item.length;
+                const actualIndex = displayJobs.findIndex(j => j.group_id === job.group_id);
+                
                 return (
-                <tr 
-                  key={job.id} 
-                  className={`hover:bg-gray-50/50 transition-colors duration-150 ${
-                    actualIndex === 0 && !filteredJobs ? 'bg-blue-50/30' : ''
-                  }`}
-                >
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="flex items-center gap-2">
-                      <span className="text-sm font-medium text-gray-900">#{job.id}</span>
-                      {actualIndex === 0 && !filteredJobs && (
-                        <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800">
-                          Latest
+                  <React.Fragment key={job.group_id}>
+                    {/* Main Group Row */}
+                    <tr 
+                      className={`hover:bg-gray-50/50 transition-colors duration-150 cursor-pointer ${
+                        actualIndex === 0 && !filteredJobs ? 'bg-blue-50/30' : ''
+                      }`}
+                      onClick={() => toggleGroupExpansion(job.group_id)}
+                    >
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="flex items-center gap-2">
+                          {isExpanded ? (
+                            <ChevronDown className="w-4 h-4 text-gray-400" />
+                          ) : (
+                            <ChevronRight className="w-4 h-4 text-gray-400" />
+                          )}
+                          <span className="text-sm font-medium text-gray-900">#{job.group_id}</span>
+                          {actualIndex === 0 && !filteredJobs && (
+                            <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800">
+                              Latest
+                            </span>
+                          )}
+                          {totalItems > 1 && (
+                            <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-600">
+                              {totalItems} items
+                            </span>
+                          )}
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <span className="text-sm text-gray-900 font-mono bg-gray-100 px-2 py-1 rounded">
+                          {job.part_id}
                         </span>
-                      )}
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <span className="text-sm text-gray-900 font-mono bg-gray-100 px-2 py-1 rounded">
-                      {job.part_id}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                    {formatPeriod(job.start_date, job.end_date)}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <StatusBadge status={job.status} />
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap" style={{ minWidth: '180px' }}>
-                    <ProgressBar progress={job.progress} status={job.status} />
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                    {formatDateTimeKST(job.created_at)}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="flex items-center gap-2">
-                      {/* Airflow Link - Available for all jobs */}
-                      <button
-                        onClick={() => handleAirflowLinkClick(job)}
-                        className="p-1.5 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded transition-colors duration-200 cursor-pointer"
-                        title={`View in Airflow: ${job.dag_id}`}
-                      >
-                        <ExternalLink className="w-4 h-4" />
-                      </button>
-                      
-                      {/* Rerun Button - Only for error status */}
-                      {job.status === 'error' && (
-                        <button
-                          onClick={() => onRerun(job.id)}
-                          className="p-1.5 text-red-600 hover:text-red-700 hover:bg-red-50 rounded transition-colors duration-200 cursor-pointer"
-                          title="Rerun failed query"
-                        >
-                          <RotateCcw className="w-4 h-4" />
-                        </button>
-                      )}
-                    </div>
-                  </td>
-                </tr>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                        {formatPeriod(job.startdate, job.enddate)}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <StatusBadge status={overallStatus as any} />
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap" style={{ minWidth: '180px' }}>
+                        <ProgressBar progress={overallProgress} status={overallStatus as any} />
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                        {formatDateTimeKST(getLatestCreatedAt(job))}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="flex items-center gap-2">
+                          {overallStatus === 'error' && (
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                onRerun(job.group_id);
+                              }}
+                              className="p-1.5 text-red-600 hover:text-red-700 hover:bg-red-50 rounded transition-colors duration-200"
+                              title="Rerun failed query"
+                            >
+                              <RotateCcw className="w-4 h-4" />
+                            </button>
+                          )}
+                        </div>
+                      </td>
+                    </tr>
+
+                    {/* Sub Items */}
+                    {renderSubItems(job)}
+                  </React.Fragment>
                 );
               })
             )}
@@ -195,6 +329,96 @@ const QueryTable: React.FC<QueryTableProps> = ({
       )}
     </div>
   );
+
+  function renderSubItems(job: QueryJob) {
+    if (!expandedGroups.has(job.group_id)) return null;
+
+    return (
+      <>
+        {/* GetData Items */}
+        {job.getdata_item.map((item) => (
+          <tr key={`getdata-${job.group_id}-${item.id}`} className="bg-blue-50/30">
+            <td className="px-6 py-3 pl-12">
+              <div className="flex items-center gap-2">
+                <Database className="w-4 h-4 text-blue-600" />
+                <span className="text-sm text-gray-700">GetData #{item.id}</span>
+              </div>
+            </td>
+            <td className="px-6 py-3 text-sm text-gray-500">-</td>
+            <td className="px-6 py-3 text-sm text-gray-600">
+              {item.firstdate ? formatDate(item.firstdate) : '-'}
+            </td>
+            <td className="px-6 py-3">
+              <StatusBadge status={item.status as any} />
+            </td>
+            <td className="px-6 py-3">
+              <ProgressBar 
+                progress={item.progress || 0} 
+                status={item.status as any} 
+              />
+            </td>
+            <td className="px-6 py-3 text-sm text-gray-600">
+              {formatDateTimeKST(item.created_at)}
+            </td>
+            <td className="px-6 py-3">
+              {item.status === 'error' && (
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onRerun(job.group_id);
+                  }}
+                  className="p-1.5 text-red-600 hover:text-red-700 hover:bg-red-50 rounded transition-colors duration-200"
+                  title="Rerun failed GetData item"
+                >
+                  <RotateCcw className="w-4 h-4" />
+                </button>
+              )}
+            </td>
+          </tr>
+        ))}
+
+        {/* Processing Items */}
+        {job.processing_item.map((item) => (
+          <tr key={`processing-${job.group_id}-${item.id}`} className="bg-green-50/30">
+            <td className="px-6 py-3 pl-12">
+              <div className="flex items-center gap-2">
+                <Cpu className="w-4 h-4 text-green-600" />
+                <span className="text-sm text-gray-700">Processing #{item.id}</span>
+              </div>
+            </td>
+            <td className="px-6 py-3 text-sm text-gray-500">-</td>
+            <td className="px-6 py-3 text-sm text-gray-500">-</td>
+            <td className="px-6 py-3">
+              <StatusBadge status={item.status as any} />
+            </td>
+            <td className="px-6 py-3">
+              <ProgressBar 
+                progress={item.progress || 0} 
+                status={item.status as any} 
+              />
+            </td>
+            <td className="px-6 py-3 text-sm text-gray-600">
+              {formatDateTimeKST(item.created_at)}
+            </td>
+            <td className="px-6 py-3">
+              {item.status === 'error' && (
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onRerun(job.group_id);
+                  }}
+                  className="p-1.5 text-red-600 hover:text-red-700 hover:bg-red-50 rounded transition-colors duration-200"
+                  title="Rerun failed Processing item"
+                >
+                  <RotateCcw className="w-4 h-4" />
+                </button>
+              )}
+            </td>
+          </tr>
+        ))}
+      </>
+    );
+  }
 };
 
 export default QueryTable;

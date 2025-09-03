@@ -11,15 +11,30 @@ export interface FilelistResponse {
   filelist: string[];
 }
 
-export interface QueryJob {
+export interface GetDataItem {
   id: number;
-  part_id: string;
-  dag_id: string;
-  start_date: string;
-  end_date: string;
-  status: 'queued' | 'processing' | 'error' | 'finished';
-  progress: number;
+  status: string;
   created_at: string;
+  updated_at: string;
+  firstdate?: string;
+  progress?: number;
+}
+
+export interface ProcessingItem {
+  id: number;
+  status: string;
+  created_at: string;
+  updated_at: string;
+  progress?: number;
+}
+
+export interface QueryJob {
+  group_id: number;
+  part_id: string;
+  startdate: string;
+  enddate: string;
+  getdata_item: GetDataItem[];
+  processing_item: ProcessingItem[];
 }
 
 export interface SubmitQueryRequest {
@@ -33,7 +48,7 @@ const mockDelay = (ms: number = 300) => new Promise(resolve => setTimeout(resolv
 
 // In-memory storage for dynamic data
 let mockQueryJobs: QueryJob[] = [...queryJobsData];
-let nextJobId = Math.max(...mockQueryJobs.map(job => job.id)) + 1;
+let nextGroupId = Math.max(...mockQueryJobs.map(job => job.group_id)) + 1;
 
 export const mockApi = {
   async getValidProducts(): Promise<ValidProduct[]> {
@@ -54,69 +69,114 @@ export const mockApi = {
   async getQueryJobs(): Promise<QueryJob[]> {
     await mockDelay();
     // Simulate some jobs progressing
-    mockQueryJobs = mockQueryJobs.map(job => {
-      if (job.status === 'processing' && job.progress < 100) {
-        const newProgress = Math.min(100, job.progress + Math.random() * 10);
-        if (newProgress >= 100) {
-          return { ...job, status: 'finished', progress: 100 };
+    mockQueryJobs = mockQueryJobs.map(job => ({
+      ...job,
+      getdata_item: job.getdata_item.map(item => {
+        if (item.status === 'processing' && item.progress && item.progress < 100) {
+          const newProgress = Math.min(100, item.progress + Math.random() * 10);
+          if (newProgress >= 100) {
+            return { ...item, status: 'finished', progress: 100, updated_at: new Date().toISOString() };
+          }
+          return { ...item, progress: Math.floor(newProgress), updated_at: new Date().toISOString() };
         }
-        return { ...job, progress: Math.floor(newProgress) };
-      }
-      return job;
-    });
+        return item;
+      }),
+      processing_item: job.processing_item.map(item => {
+        if (item.status === 'processing' && item.progress && item.progress < 100) {
+          const newProgress = Math.min(100, item.progress + Math.random() * 10);
+          if (newProgress >= 100) {
+            return { ...item, status: 'finished', progress: 100, updated_at: new Date().toISOString() };
+          }
+          return { ...item, progress: Math.floor(newProgress), updated_at: new Date().toISOString() };
+        }
+        return item;
+      })
+    }));
     
-    return [...mockQueryJobs].sort((a, b) => b.id - a.id);
+    return [...mockQueryJobs].sort((a, b) => b.group_id - a.group_id);
   },
 
   async submitQuery(request: SubmitQueryRequest): Promise<QueryJob> {
     await mockDelay();
     const newJob: QueryJob = {
-      id: nextJobId++,
+      group_id: nextGroupId++,
       part_id: request.part_id,
-      start_date: request.start_date,
-      end_date: request.end_date,
-      status: 'queued',
-      progress: 0,
-      created_at: new Date().toISOString()
+      startdate: request.start_date,
+      enddate: request.end_date,
+      getdata_item: [{
+        id: 1,
+        status: 'queued',
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+        progress: 0
+      }],
+      processing_item: [{
+        id: 1,
+        status: 'queued',
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+        progress: 0
+      }]
     };
     
     mockQueryJobs.unshift(newJob);
     
     // Simulate job starting after a short delay
     setTimeout(() => {
-      const jobIndex = mockQueryJobs.findIndex(job => job.id === newJob.id);
-      if (jobIndex !== -1 && mockQueryJobs[jobIndex].status === 'queued') {
-        mockQueryJobs[jobIndex] = { ...mockQueryJobs[jobIndex], status: 'processing', progress: 5 };
+      const jobIndex = mockQueryJobs.findIndex(job => job.group_id === newJob.group_id);
+      if (jobIndex !== -1) {
+        mockQueryJobs[jobIndex].getdata_item[0] = {
+          ...mockQueryJobs[jobIndex].getdata_item[0],
+          status: 'processing',
+          progress: 5,
+          updated_at: new Date().toISOString()
+        };
       }
     }, 2000);
     
     return newJob;
   },
 
-  async rerunQuery(jobId: number): Promise<QueryJob> {
+  async rerunQuery(groupId: number): Promise<QueryJob> {
     await mockDelay();
-    const existingJob = mockQueryJobs.find(job => job.id === jobId);
+    const existingJob = mockQueryJobs.find(job => job.group_id === groupId);
     if (!existingJob) {
-      throw new Error(`Job with id ${jobId} not found`);
+      throw new Error(`Job with group_id ${groupId} not found`);
     }
 
     const newJob: QueryJob = {
-      id: nextJobId++,
+      group_id: nextGroupId++,
       part_id: existingJob.part_id,
-      start_date: existingJob.start_date,
-      end_date: existingJob.end_date,
-      status: 'queued',
-      progress: 0,
-      created_at: new Date().toISOString()
+      startdate: existingJob.startdate,
+      enddate: existingJob.enddate,
+      getdata_item: [{
+        id: 1,
+        status: 'queued',
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+        progress: 0
+      }],
+      processing_item: [{
+        id: 1,
+        status: 'queued',
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+        progress: 0
+      }]
     };
     
     mockQueryJobs.unshift(newJob);
     
     // Simulate job starting after a short delay
     setTimeout(() => {
-      const jobIndex = mockQueryJobs.findIndex(job => job.id === newJob.id);
-      if (jobIndex !== -1 && mockQueryJobs[jobIndex].status === 'queued') {
-        mockQueryJobs[jobIndex] = { ...mockQueryJobs[jobIndex], status: 'processing', progress: 5 };
+      const jobIndex = mockQueryJobs.findIndex(job => job.group_id === newJob.group_id);
+      if (jobIndex !== -1) {
+        mockQueryJobs[jobIndex].getdata_item[0] = {
+          ...mockQueryJobs[jobIndex].getdata_item[0],
+          status: 'processing',
+          progress: 5,
+          updated_at: new Date().toISOString()
+        };
       }
     }, 2000);
     
