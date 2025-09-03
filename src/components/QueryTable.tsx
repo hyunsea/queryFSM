@@ -92,7 +92,7 @@ const QueryTable: React.FC<QueryTableProps> = ({
     const airflowUrl = `https://test.com/${job.dag_id}/dag_run_id=${job.id}`;
     window.open(airflowUrl, '_blank');
   };
-
+  return (
   const toggleGroupExpansion = (groupId: number) => {
     setExpandedGroups(prev => {
       const newSet = new Set(prev);
@@ -117,7 +117,6 @@ const QueryTable: React.FC<QueryTableProps> = ({
     return Math.round(totalProgress / jobs.length);
   };
 
-  return (
     <div className="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden">
       <div className="px-6 py-4 bg-gradient-to-r from-gray-50 to-gray-100 border-b border-gray-200">
         <h2 className="text-lg font-semibold text-gray-800">Query Status Tracking</h2>
