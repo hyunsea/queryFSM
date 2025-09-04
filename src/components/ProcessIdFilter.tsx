@@ -70,7 +70,7 @@ const PartIdFilter: React.FC<PartIdFilterProps> = ({
       </button>
 
       {isOpen && (
-        <div className="absolute top-full left-0 mt-1 w-64 bg-white border border-gray-200 rounded-lg shadow-lg z-50 max-h-80 overflow-hidden">
+        <div className="absolute top-full left-0 mt-1 w-64 bg-white border border-gray-200 rounded-lg shadow-lg z-[100] max-h-80 overflow-hidden">
           <div className="p-3 border-b border-gray-100">
             <div className="flex items-center justify-between mb-2">
               <span className="text-sm font-medium text-gray-700">Filter by Part ID</span>
