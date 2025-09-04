@@ -7,7 +7,7 @@ import AddPartIdModal from './AddPartIdModal';
 interface SidebarProps {
   onNewQuery: (job: QueryJob) => void;
   onSubmitSuccess: () => void;
-  onSubmitError: () => void;
+  onSubmitError: (message?: string) => void;
 }
 
 const Sidebar: React.FC<SidebarProps> = ({ onNewQuery, onSubmitSuccess, onSubmitError }) => {
@@ -75,7 +75,24 @@ const Sidebar: React.FC<SidebarProps> = ({ onNewQuery, onSubmitSuccess, onSubmit
       setIsOpen(false);
     } catch (error) {
       console.error('Failed to submit query:', error);
-      onSubmitError();
+      
+      // Try to parse JSON error response
+      let errorMessage = 'Failed to submit query. Please check parameters and try again.';
+      if (error && typeof error === 'object' && 'message' in error) {
+        errorMessage = error.message as string;
+      } else if (error && typeof error === 'string') {
+        try {
+          const parsedError = JSON.parse(error);
+          if (parsedError.message) {
+            errorMessage = parsedError.message;
+          }
+        } catch (parseError) {
+          // If JSON parsing fails, use the error string as is
+          errorMessage = error;
+        }
+      }
+      
+      onSubmitError(errorMessage);
     } finally {
       setIsSubmitting(false);
     }

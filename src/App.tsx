@@ -64,8 +64,8 @@ function App() {
     showSuccess('Query submitted successfully.');
   };
 
-  const handleSubmitError = () => {
-    showError('Failed to submit query. Please check parameters and try again.');
+  const handleSubmitError = (message?: string) => {
+    showError(message || 'Failed to submit query. Please check parameters and try again.');
   };
 
   const handlePartIdFilterChange = (selected: string[]) => {
