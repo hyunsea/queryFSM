@@ -96,14 +96,15 @@ const QueryTable: React.FC<QueryTableProps> = ({
       <>
         {/* GetData Items */}
         {job.getdata_item.map((item, index) => (
-          <tr key={`getdata-${item.id}`} className="bg-blue-50/30">
+          <tr key={`getdata-${item.id}`} className="bg-blue-50/50 border-l-4 border-l-blue-300">
             <td className="px-6 py-3 pl-12">
               <div className="flex items-center gap-2">
+                <div className="w-2 h-2 bg-blue-400 rounded-full"></div>
                 <Database className="w-4 h-4 text-blue-600" />
-                <span className="text-sm text-gray-700">GetData #{item.id}</span>
+                <span className="text-sm text-gray-700 font-medium">GetData #{item.id}</span>
               </div>
             </td>
-            <td className="px-6 py-3 text-sm text-gray-500">-</td>
+            <td className="px-6 py-3 text-sm text-gray-500 italic">-</td>
             <td className="px-6 py-3 text-sm text-gray-600">
               {item.firstdate ? formatDate(item.firstdate) : '-'}
             </td>
@@ -135,15 +136,16 @@ const QueryTable: React.FC<QueryTableProps> = ({
 
         {/* Processing Items */}
         {job.processing_item.map((item, index) => (
-          <tr key={`processing-${item.id}`} className="bg-green-50/30">
+          <tr key={`processing-${item.id}`} className="bg-green-50/50 border-l-4 border-l-green-300">
             <td className="px-6 py-3 pl-12">
               <div className="flex items-center gap-2">
+                <div className="w-2 h-2 bg-green-400 rounded-full"></div>
                 <Cpu className="w-4 h-4 text-green-600" />
-                <span className="text-sm text-gray-700">Processing #{item.id}</span>
+                <span className="text-sm text-gray-700 font-medium">Processing #{item.id}</span>
               </div>
             </td>
-            <td className="px-6 py-3 text-sm text-gray-500">-</td>
-            <td className="px-6 py-3 text-sm text-gray-500">-</td>
+            <td className="px-6 py-3 text-sm text-gray-500 italic">-</td>
+            <td className="px-6 py-3 text-sm text-gray-500 italic">-</td>
             <td className="px-6 py-3">
               <StatusBadge status={item.status as any} />
             </td>
