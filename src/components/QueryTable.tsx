@@ -58,12 +58,7 @@ const QueryTable: React.FC<QueryTableProps> = ({
   };
 
   const getOverallStatus = (job: QueryJob): string => {
-    const allItems = [...job.getdata_item, ...job.processing_item];
-    
-    if (allItems.some(item => item.status === 'error')) return 'error';
-    if (allItems.some(item => item.status === 'processing')) return 'processing';
-    if (allItems.every(item => item.status === 'finished')) return 'finished';
-    return 'queued';
+    return job.status;
   };
 
   const getOverallProgress = (job: QueryJob): number => {

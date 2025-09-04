@@ -4,6 +4,7 @@
     "part_id": "part_A_01",
     "startdate": "2025-01-15",
     "enddate": "2025-01-16",
+    "status": "finished",
     "getdata_item": [
       {
         "id": 1,
@@ -29,6 +30,7 @@
     "part_id": "part_B_02",
     "startdate": "2025-01-01",
     "enddate": "2025-01-10",
+    "status": "processing",
     "getdata_item": [
       {
         "id": 1,
@@ -54,6 +56,7 @@
     "part_id": "part_C_03",
     "startdate": "2025-01-20",
     "enddate": "2025-01-25",
+    "status": "processing",
     "getdata_item": [
       {
         "id": 1,
@@ -94,6 +97,7 @@
     "part_id": "part_A_01",
     "startdate": "2025-01-20",
     "enddate": "2025-01-20",
+    "status": "queued",
     "getdata_item": [
       {
         "id": 1,
@@ -118,6 +122,7 @@
     "part_id": "part_D_04",
     "startdate": "2025-01-12",
     "enddate": "2025-01-14",
+    "status": "processing",
     "getdata_item": [
       {
         "id": 1,

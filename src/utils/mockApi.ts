@@ -33,6 +33,7 @@ export interface QueryJob {
   part_id: string;
   startdate: string;
   enddate: string;
+  status: string;
   getdata_item: GetDataItem[];
   processing_item: ProcessingItem[];
 }
