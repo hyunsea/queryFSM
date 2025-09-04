@@ -106,6 +106,8 @@ const Sidebar: React.FC<SidebarProps> = ({ onNewQuery, onSubmitSuccess, onSubmit
 
   const generateCalendarDays = () => {
     const today = new Date();
+    const yesterday = new Date(today);
+    yesterday.setDate(yesterday.getDate() - 1);
     const month = currentMonth.getMonth();
     const year = currentMonth.getFullYear();
     const firstDay = new Date(year, month, 1);
@@ -119,7 +121,8 @@ const Sidebar: React.FC<SidebarProps> = ({ onNewQuery, onSubmitSuccess, onSubmit
     for (let i = 0; i < 42; i++) {
       const dateStr = current.toISOString().split('T')[0];
       const isCurrentMonth = current.getMonth() === month;
-      const isAvailable = !availableDates.includes(dateStr); // Invert: dates NOT in filelist are available
+      const isBeforeToday = current <= yesterday;
+      const isAvailable = !availableDates.includes(dateStr) && isBeforeToday; // Only dates before today and not in filelist
       const isToday = current.toDateString() === today.toDateString();
       
       days.push({
