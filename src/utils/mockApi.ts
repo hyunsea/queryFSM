@@ -42,6 +42,7 @@ export interface SubmitQueryRequest {
   part_id: string;
   start_date: string;
   end_date: string;
+  emails: string[];
 }
 
 // Mock API delay to simulate network requests

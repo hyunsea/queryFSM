@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Menu, X, Calendar, Search, Play, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Menu, X, Calendar, Search, Play, ChevronLeft, ChevronRight, Mail, Plus, Trash2 } from 'lucide-react';
 import { mockApi, ValidProduct, FilelistResponse, SubmitQueryRequest, QueryJob } from '../utils/mockApi';
 import PartIdSelector from './ProcessIdSelector';
 import AddPartIdModal from './AddPartIdModal';
@@ -18,6 +18,7 @@ const Sidebar: React.FC<SidebarProps> = ({ onNewQuery, onSubmitSuccess, onSubmit
   const [availableDates, setAvailableDates] = useState<string[]>([]);
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
+  const [emails, setEmails] = useState<string[]>(['']);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showCalendar, setShowCalendar] = useState(false);
   const [currentMonth, setCurrentMonth] = useState(new Date());
@@ -59,12 +60,16 @@ const Sidebar: React.FC<SidebarProps> = ({ onNewQuery, onSubmitSuccess, onSubmit
     e.preventDefault();
     if (!selectedPartId || !startDate || !endDate) return;
 
+    // Filter out empty emails
+    const validEmails = emails.filter(email => email.trim() !== '');
+
     setIsSubmitting(true);
     try {
       const request: SubmitQueryRequest = {
         part_id: selectedPartId,
         start_date: startDate,
-        end_date: endDate
+        end_date: endDate,
+        emails: validEmails
       };
       const newJob = await mockApi.submitQuery(request);
       onNewQuery(newJob);
@@ -102,6 +107,7 @@ const Sidebar: React.FC<SidebarProps> = ({ onNewQuery, onSubmitSuccess, onSubmit
     setSelectedPartId('');
     setStartDate('');
     setEndDate('');
+    setEmails(['']);
     setSearchTerm('');
     setAvailableDates([]);
   };
@@ -205,6 +211,22 @@ const Sidebar: React.FC<SidebarProps> = ({ onNewQuery, onSubmitSuccess, onSubmit
     } else {
       return date > hovered && date < start;
     }
+  };
+
+  const addEmailField = () => {
+    setEmails([...emails, '']);
+  };
+
+  const removeEmailField = (index: number) => {
+    if (emails.length > 1) {
+      setEmails(emails.filter((_, i) => i !== index));
+    }
+  };
+
+  const updateEmail = (index: number, value: string) => {
+    const newEmails = [...emails];
+    newEmails[index] = value;
+    setEmails(newEmails);
   };
 
   const monthNames = [
@@ -382,6 +404,49 @@ const Sidebar: React.FC<SidebarProps> = ({ onNewQuery, onSubmitSuccess, onSubmit
               )}
               {isSubmitting ? 'Submitting...' : 'Submit Query'}
             </button>
+            {/* Email Section */}
+            {selectedPartId && (
+              <div>
+                <div className="flex items-center gap-2 mb-3">
+                  <Mail className="w-4 h-4 text-gray-600" />
+                  <span className="text-sm font-medium text-gray-700">Notification Emails</span>
+                </div>
+                
+                <div className="space-y-2">
+                  {emails.map((email, index) => (
+                    <div key={index} className="flex items-center gap-2">
+                      <input
+                        type="email"
+                        value={email}
+                        onChange={(e) => updateEmail(index, e.target.value)}
+                        placeholder="Enter email address..."
+                        className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 text-sm"
+                      />
+                      {emails.length > 1 && (
+                        <button
+                          type="button"
+                          onClick={() => removeEmailField(index)}
+                          className="p-2 text-red-600 hover:text-red-700 hover:bg-red-50 rounded-lg transition-colors duration-200"
+                          title="Remove email"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      )}
+                    </div>
+                  ))}
+                  
+                  <button
+                    type="button"
+                    onClick={addEmailField}
+                    className="flex items-center gap-2 px-3 py-2 text-sm text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded-lg transition-colors duration-200"
+                  >
+                    <Plus className="w-4 h-4" />
+                    Add another email
+                  </button>
+                </div>
+              </div>
+            )}
+
           </form>
         </div>
       </div>
