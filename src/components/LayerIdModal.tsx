@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, Search, Layers, Check } from 'lucide-react';
+import { X, Search, Layers, ChevronDown, ChevronRight } from 'lucide-react';
 import { mockApi } from '../utils/mockApi';
 
 interface LayerIdModalProps {
@@ -15,9 +15,10 @@ const LayerIdModal: React.FC<LayerIdModalProps> = ({
   selectedLayerId,
   onSelectionChange
 }) => {
-  const [availableLayerIds, setAvailableLayerIds] = useState<string[]>([]);
+  const [availableLayerIds, setAvailableLayerIds] = useState<Record<string, string[]>>({});
   const [searchTerm, setSearchTerm] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     if (isOpen) {
@@ -30,6 +31,8 @@ const LayerIdModal: React.FC<LayerIdModalProps> = ({
     try {
       const layerIds = await mockApi.getLayerIds();
       setAvailableLayerIds(layerIds);
+      // Expand all categories by default
+      setExpandedCategories(new Set(Object.keys(layerIds)));
     } catch (error) {
       console.error('Failed to load layer IDs:', error);
     } finally {
@@ -37,9 +40,53 @@ const LayerIdModal: React.FC<LayerIdModalProps> = ({
     }
   };
 
-  const filteredLayerIds = availableLayerIds.filter(layerId =>
-    layerId.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const getFilteredData = () => {
+    if (!searchTerm) return availableLayerIds;
+    
+    const filtered: Record<string, string[]> = {};
+    Object.entries(availableLayerIds).forEach(([category, items]) => {
+      const matchingItems = items.filter(item =>
+        item.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        category.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+      if (matchingItems.length > 0 || category.toLowerCase().includes(searchTerm.toLowerCase())) {
+        filtered[category] = category.toLowerCase().includes(searchTerm.toLowerCase()) ? items : matchingItems;
+      }
+    });
+    return filtered;
+  };
+
+  const filteredData = getFilteredData();
+  const totalItems = Object.values(filteredData).reduce((sum, items) => sum + items.length, 0);
+
+  const toggleCategory = (category: string) => {
+    setExpandedCategories(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(category)) {
+        newSet.delete(category);
+      } else {
+        newSet.add(category);
+      }
+      return newSet;
+    });
+  };
+
+  const isSelectedCategory = (category: string) => {
+    return selectedLayerId === category;
+  };
+
+  const isSelectedItem = (item: string) => {
+    return selectedLayerId === item;
+  };
+
+  const getSelectedCategory = () => {
+    for (const [category, items] of Object.entries(availableLayerIds)) {
+      if (items.includes(selectedLayerId)) {
+        return category;
+      }
+    }
+    return selectedLayerId in availableLayerIds ? selectedLayerId : null;
+  };
 
   if (!isOpen) return null;
 
@@ -84,7 +131,7 @@ const LayerIdModal: React.FC<LayerIdModalProps> = ({
           {/* Controls */}
           <div className="flex items-center justify-between mb-4">
             <div className="text-sm text-gray-600">
-              Showing {filteredLayerIds.length} of {availableLayerIds.length} layer IDs
+              Showing {totalItems} items in {Object.keys(filteredData).length} categories
             </div>
             <div className="flex items-center gap-2">
               {selectedLayerId && (
@@ -105,31 +152,108 @@ const LayerIdModal: React.FC<LayerIdModalProps> = ({
                 <div className="w-6 h-6 border-2 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-2" />
                 Loading layer IDs...
               </div>
-            ) : filteredLayerIds.length === 0 ? (
+            ) : Object.keys(filteredData).length === 0 ? (
               <div className="p-8 text-center text-gray-500">
                 {searchTerm ? 'No layer IDs match your search' : 'No layer IDs available'}
               </div>
             ) : (
               <div className="p-2">
-                {filteredLayerIds.map((layerId) => {
-                  const isSelected = selectedLayerId === layerId;
+                {Object.entries(filteredData).map(([category, items]) => {
+                  const isExpanded = expandedCategories.has(category);
+                  const isCategorySelected = isSelectedCategory(category);
+                  const selectedCategory = getSelectedCategory();
+                  const shouldHighlightCategory = isCategorySelected || selectedCategory === category;
+                  
                   return (
-                    <label
-                      key={layerId}
-                      className="flex items-center gap-3 p-3 hover:bg-gray-50 cursor-pointer transition-colors duration-150 rounded-lg"
-                    >
-                      <input
-                        type="radio"
-                        name="layerId"
-                        value={layerId}
-                        checked={isSelected}
-                        onChange={() => onSelectionChange(layerId)}
-                        className="w-4 h-4 text-blue-600 border-gray-300 focus:ring-blue-500"
-                      />
-                      <span className="text-sm font-mono text-gray-700 flex-1">
-                        {layerId}
-                      </span>
-                    </label>
+                    <div key={category} className="mb-2">
+                      {/* Category Header */}
+                      <div className={`
+                        flex items-center gap-2 p-3 rounded-lg border-2 transition-all duration-200 cursor-pointer
+                        ${shouldHighlightCategory 
+                          ? 'bg-blue-100 border-blue-300 shadow-sm' 
+                          : 'bg-gray-50 border-gray-200 hover:bg-gray-100'
+                        }
+                      `}>
+                        <button
+                          type="button"
+                          onClick={() => toggleCategory(category)}
+                          className="flex items-center gap-2 flex-1"
+                        >
+                          {isExpanded ? (
+                            <ChevronDown className="w-4 h-4 text-gray-500" />
+                          ) : (
+                            <ChevronRight className="w-4 h-4 text-gray-500" />
+                          )}
+                          <span className={`text-sm font-semibold ${
+                            shouldHighlightCategory ? 'text-blue-800' : 'text-gray-700'
+                          }`}>
+                            {category}
+                          </span>
+                          <span className={`text-xs px-2 py-0.5 rounded-full ${
+                            shouldHighlightCategory 
+                              ? 'bg-blue-200 text-blue-700' 
+                              : 'bg-gray-200 text-gray-600'
+                          }`}>
+                            {items.length}
+                          </span>
+                        </button>
+                        <label className="flex items-center">
+                          <input
+                            type="radio"
+                            name="layerId"
+                            value={category}
+                            checked={isCategorySelected}
+                            onChange={() => onSelectionChange(category)}
+                            className="w-4 h-4 text-blue-600 border-gray-300 focus:ring-blue-500"
+                          />
+                        </label>
+                      </div>
+                      
+                      {/* Category Items */}
+                      {isExpanded && (
+                        <div className={`
+                          mt-2 ml-6 p-3 rounded-lg border-l-2 
+                          ${shouldHighlightCategory && isCategorySelected
+                            ? 'bg-blue-50 border-blue-300' 
+                            : 'bg-white border-gray-200'
+                          }
+                        `}>
+                          <div className="flex flex-wrap gap-2">
+                            {items.map((item) => {
+                              const isItemSelected = isSelectedItem(item);
+                              return (
+                                <label
+                                  key={item}
+                                  className={`
+                                    inline-flex items-center gap-2 px-3 py-2 rounded-lg border cursor-pointer transition-all duration-150
+                                    ${isItemSelected
+                                      ? 'bg-blue-600 text-white border-blue-600 shadow-sm'
+                                      : 'bg-white text-gray-700 border-gray-300 hover:bg-blue-50 hover:border-blue-300'
+                                    }
+                                  `}
+                                >
+                                  <input
+                                    type="radio"
+                                    name="layerId"
+                                    value={item}
+                                    checked={isItemSelected}
+                                    onChange={() => onSelectionChange(item)}
+                                    className={`w-3 h-3 ${
+                                      isItemSelected 
+                                        ? 'text-white border-white' 
+                                        : 'text-blue-600 border-gray-300'
+                                    } focus:ring-blue-500`}
+                                  />
+                                  <span className="text-xs font-mono">
+                                    {item}
+                                  </span>
+                                </label>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      )}
+                    </div>
                   );
                 })}
               </div>

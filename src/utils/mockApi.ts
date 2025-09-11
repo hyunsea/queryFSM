@@ -54,23 +54,14 @@ let mockQueryJobs: QueryJob[] = [...queryJobsData];
 let nextGroupId = Math.max(...mockQueryJobs.map(job => job.group_id)) + 1;
 
 // Mock layer IDs data
-const mockLayerIds = [
-  'layer_001_temperature',
-  'layer_002_pressure',
-  'layer_003_humidity',
-  'layer_004_velocity',
-  'layer_005_acceleration',
-  'layer_006_vibration',
-  'layer_007_current',
-  'layer_008_voltage',
-  'layer_009_power',
-  'layer_010_frequency',
-  'layer_011_torque',
-  'layer_012_rpm',
-  'layer_013_flow_rate',
-  'layer_014_density',
-  'layer_015_viscosity'
-];
+const mockLayerIds = {
+  'Temperature': ['temp_surface', 'temp_core', 'temp_ambient', 'temp_exhaust'],
+  'Pressure': ['pressure_inlet', 'pressure_outlet', 'pressure_differential'],
+  'Flow': ['flow_rate_primary', 'flow_rate_secondary', 'flow_velocity', 'flow_turbulence'],
+  'Electrical': ['voltage_ac', 'voltage_dc', 'current_load', 'power_consumption', 'frequency_hz'],
+  'Mechanical': ['torque_output', 'rpm_motor', 'vibration_x', 'vibration_y', 'vibration_z'],
+  'Chemical': ['ph_level', 'conductivity', 'dissolved_oxygen', 'turbidity']
+};
 
 export const mockApi = {
   async getValidProducts(): Promise<ValidProduct[]> {
@@ -88,9 +79,9 @@ export const mockApi = {
     return result;
   },
 
-  async getLayerIds(): Promise<string[]> {
+  async getLayerIds(): Promise<Record<string, string[]>> {
     await mockDelay();
-    return [...mockLayerIds];
+    return { ...mockLayerIds };
   },
   async getQueryJobs(): Promise<QueryJob[]> {
     await mockDelay();
