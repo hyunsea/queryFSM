@@ -41,34 +41,6 @@ const LayerIdModal: React.FC<LayerIdModalProps> = ({
     layerId.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const handleLayerIdToggle = (layerId: string) => {
-    const isSelected = selectedLayerIds.includes(layerId);
-    if (isSelected) {
-      onSelectionChange(selectedLayerIds.filter(id => id !== layerId));
-    } else {
-      onSelectionChange([...selectedLayerIds, layerId]);
-    }
-  };
-
-  const handleSelectAll = () => {
-    if (selectedLayerIds.length === filteredLayerIds.length) {
-      // Deselect all filtered items
-      const remainingSelected = selectedLayerIds.filter(id => !filteredLayerIds.includes(id));
-      onSelectionChange(remainingSelected);
-    } else {
-      // Select all filtered items
-      const newSelection = [...new Set([...selectedLayerIds, ...filteredLayerIds])];
-      onSelectionChange(newSelection);
-    }
-  };
-
-  const handleClearAll = () => {
-    onSelectionChange([]);
-  };
-
-  const isAllFilteredSelected = filteredLayerIds.length > 0 && 
-    filteredLayerIds.every(id => selectedLayerIds.includes(id));
-
   if (!isOpen) return null;
 
   return (
