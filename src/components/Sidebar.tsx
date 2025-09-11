@@ -29,7 +29,7 @@ const Sidebar: React.FC<SidebarProps> = ({ onNewQuery, onSubmitSuccess, onSubmit
   const [isAddPartIdModalOpen, setIsAddPartIdModalOpen] = useState(false);
 
   // Layer ID selection state
-  const [selectedLayerIds, setSelectedLayerIds] = useState<string[]>([]);
+  const [selectedLayerId, setSelectedLayerId] = useState<string>('');
   const [isLayerIdModalOpen, setIsLayerIdModalOpen] = useState(false);
 
   useEffect(() => {
@@ -63,7 +63,7 @@ const Sidebar: React.FC<SidebarProps> = ({ onNewQuery, onSubmitSuccess, onSubmit
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!selectedPartId || !startDate || !endDate || selectedLayerIds.length === 0) return;
+    if (!selectedPartId || !startDate || !endDate || !selectedLayerId) return;
 
     // Filter out empty emails
     const validEmails = emails.filter(email => email.trim() !== '');
@@ -75,7 +75,7 @@ const Sidebar: React.FC<SidebarProps> = ({ onNewQuery, onSubmitSuccess, onSubmit
         start_date: startDate,
         end_date: endDate,
         emails: validEmails,
-        layer_ids: selectedLayerIds
+        layer_ids: [selectedLayerId]
       };
       const newJob = await mockApi.submitQuery(request);
       onNewQuery(newJob);
@@ -114,7 +114,7 @@ const Sidebar: React.FC<SidebarProps> = ({ onNewQuery, onSubmitSuccess, onSubmit
     setStartDate('');
     setEndDate('');
     setEmails(['']);
-    setSelectedLayerIds([]);
+    setSelectedLayerId('');
     setSearchTerm('');
     setAvailableDates([]);
   };
@@ -401,7 +401,7 @@ const Sidebar: React.FC<SidebarProps> = ({ onNewQuery, onSubmitSuccess, onSubmit
             {/* Submit Button */}
             <button
               type="submit"
-              disabled={!selectedPartId || !startDate || !endDate || selectedLayerIds.length === 0 || isSubmitting}
+              disabled={!selectedPartId || !startDate || !endDate || !selectedLayerId || isSubmitting}
               className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
             >
               {isSubmitting ? (
@@ -427,9 +427,9 @@ const Sidebar: React.FC<SidebarProps> = ({ onNewQuery, onSubmitSuccess, onSubmit
                   <div className="flex items-center gap-2">
                     <Layers className="w-4 h-4 text-gray-500" />
                     <span className="text-sm text-gray-700">
-                      {selectedLayerIds.length === 0 
+                      {!selectedLayerId 
                         ? 'Select Layer IDs' 
-                        : `${selectedLayerIds.length} layer${selectedLayerIds.length !== 1 ? 's' : ''} selected`
+                        : selectedLayerId
                       }
                     </span>
                   </div>
@@ -440,24 +440,12 @@ const Sidebar: React.FC<SidebarProps> = ({ onNewQuery, onSubmitSuccess, onSubmit
                   </div>
                 </button>
                 
-                {selectedLayerIds.length > 0 && (
+                {selectedLayerId && (
                   <div className="mt-2 p-3 bg-blue-50 rounded-lg border border-blue-200">
-                    <div className="text-xs text-blue-600 mb-2">Selected Layer IDs:</div>
-                    <div className="flex flex-wrap gap-1">
-                      {selectedLayerIds.slice(0, 3).map((layerId) => (
-                        <span
-                          key={layerId}
-                          className="inline-block px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded font-mono"
-                        >
-                          {layerId}
-                        </span>
-                      ))}
-                      {selectedLayerIds.length > 3 && (
-                        <span className="inline-block px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded">
-                          +{selectedLayerIds.length - 3} more
-                        </span>
-                      )}
-                    </div>
+                    <div className="text-xs text-blue-600 mb-2">Selected Layer ID:</div>
+                    <span className="inline-block px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded font-mono">
+                      {selectedLayerId}
+                    </span>
                   </div>
                 )}
               </div>
@@ -522,8 +510,8 @@ const Sidebar: React.FC<SidebarProps> = ({ onNewQuery, onSubmitSuccess, onSubmit
       <LayerIdModal
         isOpen={isLayerIdModalOpen}
         onClose={() => setIsLayerIdModalOpen(false)}
-        selectedLayerIds={selectedLayerIds}
-        onSelectionChange={setSelectedLayerIds}
+        selectedLayerId={selectedLayerId}
+        onSelectionChange={setSelectedLayerId}
       />
     </>
   );

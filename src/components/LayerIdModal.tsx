@@ -5,14 +5,14 @@ import { mockApi } from '../utils/mockApi';
 interface LayerIdModalProps {
   isOpen: boolean;
   onClose: () => void;
-  selectedLayerIds: string[];
-  onSelectionChange: (layerIds: string[]) => void;
+  selectedLayerId: string;
+  onSelectionChange: (layerId: string) => void;
 }
 
 const LayerIdModal: React.FC<LayerIdModalProps> = ({
   isOpen,
   onClose,
-  selectedLayerIds,
+  selectedLayerId,
   onSelectionChange
 }) => {
   const [availableLayerIds, setAvailableLayerIds] = useState<string[]>([]);
@@ -83,7 +83,7 @@ const LayerIdModal: React.FC<LayerIdModalProps> = ({
             <div>
               <h2 className="text-xl font-semibold text-gray-800">Select Layer IDs</h2>
               <p className="text-sm text-gray-600">
-                {selectedLayerIds.length} selected
+                {selectedLayerId ? '1 selected' : 'None selected'}
               </p>
             </div>
           </div>
@@ -115,19 +115,12 @@ const LayerIdModal: React.FC<LayerIdModalProps> = ({
               Showing {filteredLayerIds.length} of {availableLayerIds.length} layer IDs
             </div>
             <div className="flex items-center gap-2">
-              <button
-                onClick={handleSelectAll}
-                disabled={filteredLayerIds.length === 0}
-                className="px-3 py-1.5 text-sm text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {isAllFilteredSelected ? 'Deselect All' : 'Select All'}
-              </button>
-              {selectedLayerIds.length > 0 && (
+              {selectedLayerId && (
                 <button
-                  onClick={handleClearAll}
+                  onClick={() => onSelectionChange('')}
                   className="px-3 py-1.5 text-sm text-red-600 hover:text-red-700 hover:bg-red-50 rounded transition-colors duration-200"
                 >
-                  Clear All
+                  Clear Selection
                 </button>
               )}
             </div>
@@ -147,23 +140,20 @@ const LayerIdModal: React.FC<LayerIdModalProps> = ({
             ) : (
               <div className="p-2">
                 {filteredLayerIds.map((layerId) => {
-                  const isSelected = selectedLayerIds.includes(layerId);
+                  const isSelected = selectedLayerId === layerId;
                   return (
                     <label
                       key={layerId}
                       className="flex items-center gap-3 p-3 hover:bg-gray-50 cursor-pointer transition-colors duration-150 rounded-lg"
                     >
-                      <div className="relative">
-                        <input
-                          type="checkbox"
-                          checked={isSelected}
-                          onChange={() => handleLayerIdToggle(layerId)}
-                          className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-                        />
-                        {isSelected && (
-                          <Check className="w-3 h-3 text-white absolute top-0.5 left-0.5 pointer-events-none" />
-                        )}
-                      </div>
+                      <input
+                        type="radio"
+                        name="layerId"
+                        value={layerId}
+                        checked={isSelected}
+                        onChange={() => onSelectionChange(layerId)}
+                        className="w-4 h-4 text-blue-600 border-gray-300 focus:ring-blue-500"
+                      />
                       <span className="text-sm font-mono text-gray-700 flex-1">
                         {layerId}
                       </span>
@@ -178,7 +168,7 @@ const LayerIdModal: React.FC<LayerIdModalProps> = ({
         {/* Footer */}
         <div className="px-6 py-4 bg-gray-50 border-t border-gray-200 flex items-center justify-between">
           <div className="text-sm text-gray-600">
-            {selectedLayerIds.length} layer ID{selectedLayerIds.length !== 1 ? 's' : ''} selected
+            {selectedLayerId ? '1 layer ID selected' : 'No layer ID selected'}
           </div>
           <div className="flex items-center gap-3">
             <button
