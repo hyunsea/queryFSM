@@ -43,6 +43,7 @@ export interface SubmitQueryRequest {
   start_date: string;
   end_date: string;
   emails: string[];
+  layer_ids: string[];
 }
 
 // Mock API delay to simulate network requests
@@ -51,6 +52,25 @@ const mockDelay = (ms: number = 300) => new Promise(resolve => setTimeout(resolv
 // In-memory storage for dynamic data
 let mockQueryJobs: QueryJob[] = [...queryJobsData];
 let nextGroupId = Math.max(...mockQueryJobs.map(job => job.group_id)) + 1;
+
+// Mock layer IDs data
+const mockLayerIds = [
+  'layer_001_temperature',
+  'layer_002_pressure',
+  'layer_003_humidity',
+  'layer_004_velocity',
+  'layer_005_acceleration',
+  'layer_006_vibration',
+  'layer_007_current',
+  'layer_008_voltage',
+  'layer_009_power',
+  'layer_010_frequency',
+  'layer_011_torque',
+  'layer_012_rpm',
+  'layer_013_flow_rate',
+  'layer_014_density',
+  'layer_015_viscosity'
+];
 
 export const mockApi = {
   async getValidProducts(): Promise<ValidProduct[]> {
@@ -68,6 +88,10 @@ export const mockApi = {
     return result;
   },
 
+  async getLayerIds(): Promise<string[]> {
+    await mockDelay();
+    return [...mockLayerIds];
+  },
   async getQueryJobs(): Promise<QueryJob[]> {
     await mockDelay();
     // Simulate some jobs progressing

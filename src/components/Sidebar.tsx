@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { Menu, X, Calendar, Search, Play, ChevronLeft, ChevronRight, Mail, Plus, Trash2 } from 'lucide-react';
+import { Menu, X, Calendar, Search, Play, ChevronLeft, ChevronRight, Mail, Plus, Trash2, Layers } from 'lucide-react';
 import { mockApi, ValidProduct, FilelistResponse, SubmitQueryRequest, QueryJob } from '../utils/mockApi';
 import PartIdSelector from './ProcessIdSelector';
 import AddPartIdModal from './AddPartIdModal';
+import LayerIdModal from './LayerIdModal';
 
 interface SidebarProps {
   onNewQuery: (job: QueryJob) => void;
@@ -26,6 +27,10 @@ const Sidebar: React.FC<SidebarProps> = ({ onNewQuery, onSubmitSuccess, onSubmit
 
   // Add Part ID Modal state
   const [isAddPartIdModalOpen, setIsAddPartIdModalOpen] = useState(false);
+
+  // Layer ID selection state
+  const [selectedLayerIds, setSelectedLayerIds] = useState<string[]>([]);
+  const [isLayerIdModalOpen, setIsLayerIdModalOpen] = useState(false);
 
   useEffect(() => {
     const loadValidProducts = async () => {
@@ -58,7 +63,7 @@ const Sidebar: React.FC<SidebarProps> = ({ onNewQuery, onSubmitSuccess, onSubmit
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!selectedPartId || !startDate || !endDate) return;
+    if (!selectedPartId || !startDate || !endDate || selectedLayerIds.length === 0) return;
 
     // Filter out empty emails
     const validEmails = emails.filter(email => email.trim() !== '');
@@ -69,7 +74,8 @@ const Sidebar: React.FC<SidebarProps> = ({ onNewQuery, onSubmitSuccess, onSubmit
         part_id: selectedPartId,
         start_date: startDate,
         end_date: endDate,
-        emails: validEmails
+        emails: validEmails,
+        layer_ids: selectedLayerIds
       };
       const newJob = await mockApi.submitQuery(request);
       onNewQuery(newJob);
@@ -108,6 +114,7 @@ const Sidebar: React.FC<SidebarProps> = ({ onNewQuery, onSubmitSuccess, onSubmit
     setStartDate('');
     setEndDate('');
     setEmails(['']);
+    setSelectedLayerIds([]);
     setSearchTerm('');
     setAvailableDates([]);
   };
@@ -394,7 +401,7 @@ const Sidebar: React.FC<SidebarProps> = ({ onNewQuery, onSubmitSuccess, onSubmit
             {/* Submit Button */}
             <button
               type="submit"
-              disabled={!selectedPartId || !startDate || !endDate || isSubmitting}
+              disabled={!selectedPartId || !startDate || !endDate || selectedLayerIds.length === 0 || isSubmitting}
               className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
             >
               {isSubmitting ? (
@@ -404,6 +411,58 @@ const Sidebar: React.FC<SidebarProps> = ({ onNewQuery, onSubmitSuccess, onSubmit
               )}
               {isSubmitting ? 'Submitting...' : 'Submit Query'}
             </button>
+            {/* Layer ID Selection */}
+            {selectedPartId && startDate && endDate && (
+              <div>
+                <div className="flex items-center gap-2 mb-3">
+                  <Layers className="w-4 h-4 text-gray-600" />
+                  <span className="text-sm font-medium text-gray-700">Layer IDs</span>
+                </div>
+                
+                <button
+                  type="button"
+                  onClick={() => setIsLayerIdModalOpen(true)}
+                  className="w-full flex items-center justify-between px-4 py-3 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors duration-200"
+                >
+                  <div className="flex items-center gap-2">
+                    <Layers className="w-4 h-4 text-gray-500" />
+                    <span className="text-sm text-gray-700">
+                      {selectedLayerIds.length === 0 
+                        ? 'Select Layer IDs' 
+                        : `${selectedLayerIds.length} layer${selectedLayerIds.length !== 1 ? 's' : ''} selected`
+                      }
+                    </span>
+                  </div>
+                  <div className="text-gray-400">
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                    </svg>
+                  </div>
+                </button>
+                
+                {selectedLayerIds.length > 0 && (
+                  <div className="mt-2 p-3 bg-blue-50 rounded-lg border border-blue-200">
+                    <div className="text-xs text-blue-600 mb-2">Selected Layer IDs:</div>
+                    <div className="flex flex-wrap gap-1">
+                      {selectedLayerIds.slice(0, 3).map((layerId) => (
+                        <span
+                          key={layerId}
+                          className="inline-block px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded font-mono"
+                        >
+                          {layerId}
+                        </span>
+                      ))}
+                      {selectedLayerIds.length > 3 && (
+                        <span className="inline-block px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded">
+                          +{selectedLayerIds.length - 3} more
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
             {/* Email Section */}
             {selectedPartId && (
               <div>
@@ -457,6 +516,14 @@ const Sidebar: React.FC<SidebarProps> = ({ onNewQuery, onSubmitSuccess, onSubmit
         onClose={() => setIsAddPartIdModalOpen(false)}
         onSuccess={handleAddPartIdSuccess}
         onError={handleAddPartIdError}
+      />
+
+      {/* Layer ID Modal */}
+      <LayerIdModal
+        isOpen={isLayerIdModalOpen}
+        onClose={() => setIsLayerIdModalOpen(false)}
+        selectedLayerIds={selectedLayerIds}
+        onSelectionChange={setSelectedLayerIds}
       />
     </>
   );
