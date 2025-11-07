@@ -6,6 +6,7 @@ import AutoRefreshToggle from './components/AutoRefreshToggle';
 import ToastContainer from './components/ToastContainer';
 import { mockApi, QueryJob } from './utils/mockApi';
 import { useToast } from './hooks/useToast';
+import { parseUrlParams, hasUrlParams, QueryParams } from './utils/urlParams';
 
 type FilterType = 'all' | 'processing' | 'finished' | 'error';
 function App() {
@@ -15,6 +16,8 @@ function App() {
   const [autoRefresh, setAutoRefresh] = useState(false);
   const [activeFilter, setActiveFilter] = useState<FilterType>('all');
   const [partIdFilter, setPartIdFilter] = useState<string[]>([]);
+  const [initialUrlParams, setInitialUrlParams] = useState<QueryParams | null>(null);
+  const [shouldOpenSidebar, setShouldOpenSidebar] = useState(false);
   const { toasts, showSuccess, showError, removeToast } = useToast();
 
   const fetchJobs = useCallback(async () => {
@@ -33,6 +36,15 @@ function App() {
   useEffect(() => {
     fetchJobs();
   }, [fetchJobs]);
+
+  // Parse URL parameters on mount
+  useEffect(() => {
+    const urlParams = parseUrlParams();
+    if (hasUrlParams(urlParams)) {
+      setInitialUrlParams(urlParams);
+      setShouldOpenSidebar(true);
+    }
+  }, []);
 
   // Auto-refresh every 60 seconds when enabled
   useEffect(() => {
@@ -91,10 +103,16 @@ function App() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100">
-      <Sidebar 
-        onNewQuery={handleNewQuery} 
+      <Sidebar
+        onNewQuery={handleNewQuery}
         onSubmitSuccess={handleSubmitSuccess}
         onSubmitError={handleSubmitError}
+        initialParams={initialUrlParams}
+        shouldOpen={shouldOpenSidebar}
+        onParamsApplied={() => {
+          setInitialUrlParams(null);
+          setShouldOpenSidebar(false);
+        }}
       />
       <ToastContainer toasts={toasts} onRemoveToast={removeToast} />
       

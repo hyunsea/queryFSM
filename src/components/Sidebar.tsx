@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Menu, X, Calendar, Search, Play, ChevronLeft, ChevronRight, Mail, Plus, Trash2, Layers } from 'lucide-react';
 import { mockApi, ValidProduct, FilelistResponse, SubmitQueryRequest, QueryJob } from '../utils/mockApi';
+import { QueryParams } from '../utils/urlParams';
 import PartIdSelector from './ProcessIdSelector';
 import AddPartIdModal from './AddPartIdModal';
 import LayerIdModal from './LayerIdModal';
@@ -9,9 +10,12 @@ interface SidebarProps {
   onNewQuery: (job: QueryJob) => void;
   onSubmitSuccess: () => void;
   onSubmitError: (message?: string) => void;
+  initialParams?: QueryParams | null;
+  shouldOpen?: boolean;
+  onParamsApplied?: () => void;
 }
 
-const Sidebar: React.FC<SidebarProps> = ({ onNewQuery, onSubmitSuccess, onSubmitError }) => {
+const Sidebar: React.FC<SidebarProps> = ({ onNewQuery, onSubmitSuccess, onSubmitError, initialParams, shouldOpen, onParamsApplied }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [validProducts, setValidProducts] = useState<ValidProduct[]>([]);
   const [selectedPartId, setSelectedPartId] = useState('');
@@ -43,6 +47,36 @@ const Sidebar: React.FC<SidebarProps> = ({ onNewQuery, onSubmitSuccess, onSubmit
     };
     loadValidProducts();
   }, []);
+
+  // Apply URL parameters when they are provided
+  useEffect(() => {
+    if (initialParams && onParamsApplied) {
+      if (initialParams.partId) {
+        setSelectedPartId(initialParams.partId);
+        setSearchTerm(initialParams.partId);
+      }
+      if (initialParams.startDate) {
+        setStartDate(initialParams.startDate);
+      }
+      if (initialParams.endDate) {
+        setEndDate(initialParams.endDate);
+      }
+      if (initialParams.layerId) {
+        setSelectedLayerId(initialParams.layerId);
+      }
+      if (initialParams.emails && initialParams.emails.length > 0) {
+        setEmails(initialParams.emails);
+      }
+      onParamsApplied();
+    }
+  }, [initialParams, onParamsApplied]);
+
+  // Open sidebar when shouldOpen is true
+  useEffect(() => {
+    if (shouldOpen) {
+      setIsOpen(true);
+    }
+  }, [shouldOpen]);
 
   useEffect(() => {
     const loadFilelist = async () => {
