@@ -12,7 +12,6 @@ interface AddPartIdModalProps {
   onClose: () => void;
   onSuccess: () => void;
   onError: (message: string) => void;
-  initialPartId?: string;
 }
 
 type ModalStep = 'input' | 'candidates' | 'loading';
@@ -21,8 +20,7 @@ const AddPartIdModal: React.FC<AddPartIdModalProps> = ({
   isOpen,
   onClose,
   onSuccess,
-  onError,
-  initialPartId
+  onError
 }) => {
   const [currentStep, setCurrentStep] = useState<ModalStep>('input');
   const [partId, setPartId] = useState('');
@@ -39,26 +37,6 @@ const AddPartIdModal: React.FC<AddPartIdModalProps> = ({
     setIsSearching(false);
     setIsRegistering(false);
   };
-
-  // Auto-populate partId and trigger search when initialPartId is provided
-  React.useEffect(() => {
-    if (isOpen && initialPartId && initialPartId !== partId) {
-      setPartId(initialPartId);
-      // Auto-trigger search
-      (async () => {
-        setIsSearching(true);
-        try {
-          const fetchedCandidates = await getProcessIdCandidates(initialPartId);
-          setCandidates(fetchedCandidates);
-          setCurrentStep('candidates');
-        } catch (error) {
-          onError('Failed to fetch candidates. Please try again.');
-        } finally {
-          setIsSearching(false);
-        }
-      })();
-    }
-  }, [isOpen, initialPartId]);
 
   const handleClose = () => {
     resetModal();
