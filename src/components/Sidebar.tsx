@@ -31,6 +31,7 @@ const Sidebar: React.FC<SidebarProps> = ({ onNewQuery, onSubmitSuccess, onSubmit
 
   // Add Part ID Modal state
   const [isAddPartIdModalOpen, setIsAddPartIdModalOpen] = useState(false);
+  const [pendingUrlParams, setPendingUrlParams] = useState<QueryParams | null>(null);
 
   // Layer ID selection state
   const [selectedLayerId, setSelectedLayerId] = useState<string>('');
@@ -50,26 +51,54 @@ const Sidebar: React.FC<SidebarProps> = ({ onNewQuery, onSubmitSuccess, onSubmit
 
   // Apply URL parameters when they are provided
   useEffect(() => {
-    if (initialParams && onParamsApplied) {
+    if (initialParams && onParamsApplied && validProducts.length > 0) {
       if (initialParams.partId) {
-        setSelectedPartId(initialParams.partId);
-        setSearchTerm(initialParams.partId);
+        // Check if partId exists in validProducts
+        const partIdExists = validProducts.some(
+          product => product.part_id === initialParams.partId
+        );
+
+        if (partIdExists) {
+          // Part ID exists, apply all parameters
+          setSelectedPartId(initialParams.partId);
+          setSearchTerm(initialParams.partId);
+          if (initialParams.startDate) {
+            setStartDate(initialParams.startDate);
+          }
+          if (initialParams.endDate) {
+            setEndDate(initialParams.endDate);
+          }
+          if (initialParams.layerId) {
+            setSelectedLayerId(initialParams.layerId);
+          }
+          if (initialParams.emails && initialParams.emails.length > 0) {
+            setEmails(initialParams.emails);
+          }
+          onParamsApplied();
+        } else {
+          // Part ID doesn't exist, save params and open AddPartIdModal
+          setPendingUrlParams(initialParams);
+          setIsAddPartIdModalOpen(true);
+          onParamsApplied();
+        }
+      } else {
+        // No partId in params, apply other parameters
+        if (initialParams.startDate) {
+          setStartDate(initialParams.startDate);
+        }
+        if (initialParams.endDate) {
+          setEndDate(initialParams.endDate);
+        }
+        if (initialParams.layerId) {
+          setSelectedLayerId(initialParams.layerId);
+        }
+        if (initialParams.emails && initialParams.emails.length > 0) {
+          setEmails(initialParams.emails);
+        }
+        onParamsApplied();
       }
-      if (initialParams.startDate) {
-        setStartDate(initialParams.startDate);
-      }
-      if (initialParams.endDate) {
-        setEndDate(initialParams.endDate);
-      }
-      if (initialParams.layerId) {
-        setSelectedLayerId(initialParams.layerId);
-      }
-      if (initialParams.emails && initialParams.emails.length > 0) {
-        setEmails(initialParams.emails);
-      }
-      onParamsApplied();
     }
-  }, [initialParams, onParamsApplied]);
+  }, [initialParams, onParamsApplied, validProducts]);
 
   // Open sidebar when shouldOpen is true
   useEffect(() => {
@@ -159,6 +188,27 @@ const Sidebar: React.FC<SidebarProps> = ({ onNewQuery, onSubmitSuccess, onSubmit
     try {
       const products = await mockApi.getValidProducts();
       setValidProducts(products);
+
+      // If there were pending URL params, apply them now
+      if (pendingUrlParams) {
+        if (pendingUrlParams.partId) {
+          setSelectedPartId(pendingUrlParams.partId);
+          setSearchTerm(pendingUrlParams.partId);
+        }
+        if (pendingUrlParams.startDate) {
+          setStartDate(pendingUrlParams.startDate);
+        }
+        if (pendingUrlParams.endDate) {
+          setEndDate(pendingUrlParams.endDate);
+        }
+        if (pendingUrlParams.layerId) {
+          setSelectedLayerId(pendingUrlParams.layerId);
+        }
+        if (pendingUrlParams.emails && pendingUrlParams.emails.length > 0) {
+          setEmails(pendingUrlParams.emails);
+        }
+        setPendingUrlParams(null);
+      }
     } catch (error) {
       console.error('Failed to refresh valid products:', error);
     }
@@ -535,9 +585,13 @@ const Sidebar: React.FC<SidebarProps> = ({ onNewQuery, onSubmitSuccess, onSubmit
       {/* Add Part ID Modal */}
       <AddPartIdModal
         isOpen={isAddPartIdModalOpen}
-        onClose={() => setIsAddPartIdModalOpen(false)}
+        onClose={() => {
+          setIsAddPartIdModalOpen(false);
+          setPendingUrlParams(null);
+        }}
         onSuccess={handleAddPartIdSuccess}
         onError={handleAddPartIdError}
+        initialPartId={pendingUrlParams?.partId}
       />
 
       {/* Layer ID Modal */}
